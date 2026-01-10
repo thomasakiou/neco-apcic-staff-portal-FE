@@ -58,7 +58,7 @@ export function Login() {
                         alt="NECO Logo"
                         className={styles.logo}
                     />
-                    <h1 className={styles.title}>Staff Portal</h1>
+                    <h1 className={styles.title}>APCIC Staff Portal</h1>
                     <p className={styles.subtitle}>
                         National Examinations Council
                     </p>

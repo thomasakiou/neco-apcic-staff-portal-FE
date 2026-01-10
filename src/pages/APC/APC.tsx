@@ -6,7 +6,7 @@ import { Card, CardContent } from '../../components/Card';
 import { Loader } from '../../components/Loader';
 import styles from './APC.module.css';
 
-// Fallback mapping when API is not accessible (staff portal token doesn't have access to admin endpoints)
+// Fallback mapping when API is not accessible (APCIC staff portal token doesn't have access to admin endpoints)
 const FALLBACK_ASSIGNMENT_NAMES: Record<string, string> = {
     'tt': 'Token Test',
     'mar-accr': 'March Accreditation',

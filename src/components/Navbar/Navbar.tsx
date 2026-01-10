@@ -21,7 +21,7 @@ export function Navbar() {
                 {/* Logo */}
                 <Link to="/dashboard" className={styles.logo}>
                     <img src="/images/neco.png" alt="NECO" className={styles.logoImage} />
-                    <span className={styles.logoText}>Staff Portal</span>
+                    <span className={styles.logoText}>APCIC Staff Portal</span>
                 </Link>
 
                 {/* Desktop Navigation */}
