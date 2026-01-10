@@ -181,6 +181,20 @@
     text-decoration: none;
     border-radius: var(--radius-md);
     transition: all var(--transition-fast);
+    /* Button reset */
+    background: none;
+    border: none;
+    cursor: pointer;
+    font-family: inherit;
+    color: var(--text-secondary);
+}
+
+.mobileLogout {
+    color: var(--color-error);
+}
+
+.mobileLogout:hover {
+    background: rgba(220, 38, 38, 0.1) !important;
 }
 
 .mobileNavLink:hover {

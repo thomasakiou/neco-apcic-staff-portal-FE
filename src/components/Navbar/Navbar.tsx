@@ -72,6 +72,15 @@ export function Navbar() {
                         <span className={styles.mobileLabel}>{item.label}</span>
                     </Link>
                 ))}
+
+                {/* Mobile Logout */}
+                <button
+                    onClick={logout}
+                    className={`${styles.mobileNavLink} ${styles.mobileLogout}`}
+                >
+                    <span className={styles.mobileIcon}>🚪</span>
+                    <span className={styles.mobileLabel}>Logout</span>
+                </button>
             </div>
         </nav>
     );
