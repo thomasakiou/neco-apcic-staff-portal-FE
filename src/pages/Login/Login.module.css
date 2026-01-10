@@ -72,7 +72,10 @@
     width: 100px;
     height: 100px;
     object-fit: contain;
-    margin-bottom: var(--space-md);
+    margin: 0 auto var(--space-md);
+    /* Center horizontally with margin-bottom */
+    display: block;
+    /* Ensure it behaves as a block for margin auto to work */
     filter: drop-shadow(0 4px 12px rgba(45, 139, 87, 0.2));
 }
 
@@ -82,6 +85,48 @@
     color: var(--color-primary);
     margin: 0;
     line-height: var(--line-height-tight);
+}
+
+@media (max-width: 480px) {
+    .logoSection {
+        display: grid;
+        grid-template-columns: auto 1fr;
+        align-items: center;
+        text-align: center;
+        gap: var(--space-md);
+        margin-bottom: var(--space-md);
+        width: 100%;
+        padding: 0 var(--space-sm);
+    }
+
+    .logo {
+        width: 50px;
+        height: 50px;
+        margin-bottom: 0;
+        grid-row: 1 / 3;
+    }
+
+    .title {
+        font-size: var(--font-size-2xl);
+        font-weight: 800;
+        /* Make it bolder */
+        color: var(--color-primary);
+        /* Revert to green */
+        grid-column: 2;
+        align-self: end;
+        justify-self: center;
+        /* Center text relative to subtitle */
+    }
+
+    .subtitle {
+        font-size: var(--font-size-sm);
+        grid-column: 2;
+        margin: 0;
+        align-self: start;
+        text-align: center;
+        justify-self: center;
+        /* Center text relative to title */
+    }
 }
 
 .subtitle {
