@@ -6,7 +6,7 @@
 # This mimics the vite proxy behavior in production
 [[redirects]]
   from = "/api/*"
-  to = "https://vmi2848672.contaboserver.net/apcic/:splat"
+  to = "https://vmi2848672.contaboserver.net/apcic/api/:splat"
   status = 200
   force = true
 
