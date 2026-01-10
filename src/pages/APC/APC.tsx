@@ -1,0 +1,212 @@
+import { useState, useEffect, useCallback } from 'react';
+import { useAuth } from '../../context/AuthContext';
+import { APCData, AssignmentData, APC_FIELD_KEYS } from '../../types';
+import * as api from '../../services/api';
+import { Card, CardContent } from '../../components/Card';
+import { Loader } from '../../components/Loader';
+import styles from './APC.module.css';
+
+// Fallback mapping when API is not accessible (staff portal token doesn't have access to admin endpoints)
+const FALLBACK_ASSIGNMENT_NAMES: Record<string, string> = {
+    'tt': 'Token Test',
+    'mar-accr': 'March Accreditation',
+    'ncee': 'NCEE Examination',
+    'gifted': 'Gifted Examination',
+    'becep': 'BECEP Examination',
+    'bece-mrkp': 'BECE Marking',
+    'ssce-int': 'SSCE Internal Examination',
+    'swapping': 'Swapping',
+    'ssce-int-mrk': 'SSCE Internal Marking',
+    'oct-accr': 'October Accreditation',
+    'ssce-ext': 'SSCE External Examination',
+    'ssce-ext-mrk': 'SSCE External Marking',
+    'pur-samp': 'Purchasing/Sampling',
+    'int-audit': 'Internal Audit',
+    'stock-tk': 'Stock Taking',
+};
+
+export function APC() {
+    const { getAPC, profile, user } = useAuth();
+    const [apc, setApc] = useState<APCData | null>(null);
+    const [assignments, setAssignments] = useState<AssignmentData[]>([]);
+    const [isLoading, setIsLoading] = useState(true);
+    const [error, setError] = useState<string | null>(null);
+
+    const loadData = useCallback(async () => {
+        try {
+            // Load APC data
+            const apcData = await getAPC();
+            setApc(apcData);
+
+            // Load assignments from the API
+            if (user?.token) {
+                try {
+                    const assignmentsData = await api.getAssignments(user.token);
+                    setAssignments(assignmentsData);
+                } catch {
+                    // Silently fail - will use fallback mapping
+                    console.log('Using fallback assignment names (API not accessible)');
+                }
+            }
+        } catch (err) {
+            setError(err instanceof Error ? err.message : 'Failed to load APC data');
+        } finally {
+            setIsLoading(false);
+        }
+    }, [getAPC, user?.token]);
+
+    useEffect(() => {
+        loadData();
+    }, [loadData]);
+
+    if (isLoading) {
+        return <Loader fullScreen text="Loading APC data..." />;
+    }
+
+    // Build a code-to-name map from assignments (if available)
+    const codeToNameMap: Record<string, string> = { ...FALLBACK_ASSIGNMENT_NAMES };
+    assignments.forEach((a) => {
+        // Store by lowercase code for case-insensitive matching
+        codeToNameMap[a.code.toLowerCase()] = a.name;
+    });
+
+    // Get assignment name from code
+    const getAssignmentName = (code: string): string => {
+        const normalizedCode = code.toLowerCase().trim();
+        return codeToNameMap[normalizedCode] || code;
+    };
+
+    // Get value for a field key from APC data
+    const getAssignmentValue = (key: string): string | null => {
+        if (!apc) return null;
+        return apc[key as keyof APCData] as string | null;
+    };
+
+    // Get active assignments with their resolved names
+    const activeAssignments = APC_FIELD_KEYS
+        .filter((key) => getAssignmentValue(key))
+        .map((key) => {
+            const value = getAssignmentValue(key)!;
+            // Map the field key (e.g. 'ssce_int') to the assignment code (e.g. 'ssce-int')
+            const assignmentCode = key.replace(/_/g, '-');
+            return {
+                key,
+                code: assignmentCode,
+                value,
+                name: getAssignmentName(assignmentCode),
+            };
+        });
+
+    return (
+        <div className={styles.container}>
+            <header className={styles.header}>
+                <h1 className={styles.title}>APC Assignments</h1>
+                <p className={styles.subtitle}>
+                    Your Annual Performance Calendar for 2026
+                </p>
+            </header>
+
+            {error && (
+                <div className={styles.alert} role="alert">
+                    ⚠️ {error}
+                </div>
+            )}
+
+            {!apc ? (
+                <Card>
+                    <CardContent>
+                        <div className={styles.emptyState}>
+                            <span className={styles.emptyIcon}>📋</span>
+                            <h3 className={styles.emptyTitle}>No APC Data Found</h3>
+                            <p className={styles.emptyText}>
+                                Your Annual Performance Calendar has not been set up yet.
+                                Please contact your administrator.
+                            </p>
+                        </div>
+                    </CardContent>
+                </Card>
+            ) : (
+                <>
+                    {/* Summary */}
+                    <section className={styles.summarySection}>
+                        <div className={styles.summaryGrid}>
+                            <Card variant="elevated">
+                                <CardContent className={styles.summaryCard}>
+                                    <span className={styles.summaryIcon}>✅</span>
+                                    <span className={styles.summaryValue}>{activeAssignments.length}</span>
+                                    <span className={styles.summaryLabel}>Active Assignments</span>
+                                </CardContent>
+                            </Card>
+                            <Card variant="elevated">
+                                <CardContent className={styles.summaryCard}>
+                                    <span className={styles.summaryIcon}>🔢</span>
+                                    <span className={styles.summaryValue}>{apc.count || 0}</span>
+                                    <span className={styles.summaryLabel}>Total Count</span>
+                                </CardContent>
+                            </Card>
+                            <Card variant="elevated">
+                                <CardContent className={styles.summaryCard}>
+                                    <span className={styles.summaryIcon}>📅</span>
+                                    <span className={styles.summaryValue}>2026</span>
+                                    <span className={styles.summaryLabel}>Year</span>
+                                </CardContent>
+                            </Card>
+                        </div>
+                    </section>
+
+                    {/* Active Assignments */}
+                    {activeAssignments.length > 0 && (
+                        <section className={styles.section}>
+                            <h2 className={styles.sectionTitle}>Active Assignments</h2>
+                            <div className={styles.assignmentsGrid}>
+                                {activeAssignments.map((assignment) => (
+                                    <Card key={assignment.key} className={styles.assignmentCard}>
+                                        <CardContent>
+                                            <div className={styles.assignmentHeader}>
+                                                <span className={styles.assignmentIcon}>✅</span>
+                                                <h3 className={styles.assignmentTitle}>{assignment.name}</h3>
+                                            </div>
+                                        </CardContent>
+                                    </Card>
+                                ))}
+                            </div>
+                        </section>
+                    )}
+
+                    {/* Staff Info */}
+                    <section className={styles.section}>
+                        <h2 className={styles.sectionTitle}>Staff Information</h2>
+                        <Card>
+                            <CardContent>
+                                <div className={styles.infoGrid}>
+                                    <div className={styles.infoItem}>
+                                        <span className={styles.infoLabel}>File Number</span>
+                                        <span className={styles.infoValue}>{apc.file_no || profile?.fileno}</span>
+                                    </div>
+                                    <div className={styles.infoItem}>
+                                        <span className={styles.infoLabel}>Name</span>
+                                        <span className={styles.infoValue}>{apc.name}</span>
+                                    </div>
+                                    <div className={styles.infoItem}>
+                                        <span className={styles.infoLabel}>Station</span>
+                                        <span className={styles.infoValue}>{apc.station || 'N/A'}</span>
+                                    </div>
+                                    <div className={styles.infoItem}>
+                                        <span className={styles.infoLabel}>CONRAISS</span>
+                                        <span className={styles.infoValue}>{apc.conraiss || 'N/A'}</span>
+                                    </div>
+                                    <div className={styles.infoItem}>
+                                        <span className={styles.infoLabel}>Status</span>
+                                        <span className={`${styles.statusBadge} ${apc.active ? styles.active : styles.inactive}`}>
+                                            {apc.active ? 'Active' : 'Inactive'}
+                                        </span>
+                                    </div>
+                                </div>
+                            </CardContent>
+                        </Card>
+                    </section>
+                </>
+            )}
+        </div>
+    );
+}

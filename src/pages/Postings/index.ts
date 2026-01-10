@@ -1,0 +1,1 @@
+export { Postings } from './Postings';

@@ -1,0 +1,208 @@
+.container {
+    max-width: 1100px;
+    margin: 0 auto;
+    padding: var(--space-lg);
+    padding-bottom: calc(var(--space-2xl) + 80px);
+    /* Account for mobile nav */
+}
+
+@media (min-width: 768px) {
+    .container {
+        padding-bottom: var(--space-2xl);
+    }
+}
+
+/* Welcome Section */
+.welcomeSection {
+    margin-bottom: var(--space-xl);
+    animation: slideUp var(--transition-slow) ease-out;
+}
+
+.welcomeContent {
+    text-align: center;
+}
+
+@media (min-width: 480px) {
+    .welcomeContent {
+        text-align: left;
+    }
+}
+
+.welcomeTitle {
+    font-size: var(--font-size-2xl);
+    font-weight: var(--font-weight-bold);
+    color: var(--text-primary);
+    margin: 0 0 var(--space-xs);
+    line-height: var(--line-height-tight);
+}
+
+@media (min-width: 768px) {
+    .welcomeTitle {
+        font-size: var(--font-size-3xl);
+    }
+}
+
+.name {
+    color: var(--color-primary);
+}
+
+.welcomeSubtitle {
+    font-size: var(--font-size-md);
+    color: var(--text-secondary);
+    margin: 0;
+}
+
+/* Stats Grid */
+.statsGrid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: var(--space-md);
+    margin-bottom: var(--space-xl);
+    animation: slideUp var(--transition-slow) ease-out;
+    animation-delay: 0.1s;
+    animation-fill-mode: both;
+}
+
+@media (min-width: 768px) {
+    .statsGrid {
+        grid-template-columns: repeat(4, 1fr);
+    }
+}
+
+.statCard {
+    text-align: center;
+}
+
+.statIcon {
+    font-size: 2rem;
+    margin-bottom: var(--space-sm);
+}
+
+.statInfo {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.statValue {
+    font-size: var(--font-size-xl);
+    font-weight: var(--font-weight-bold);
+    color: var(--text-primary);
+    line-height: 1;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+@media (min-width: 768px) {
+    .statValue {
+        font-size: var(--font-size-2xl);
+    }
+}
+
+.statLabel {
+    font-size: var(--font-size-xs);
+    color: var(--text-tertiary);
+}
+
+/* Section Title */
+.sectionTitle {
+    font-size: var(--font-size-xl);
+    font-weight: var(--font-weight-semibold);
+    color: var(--text-primary);
+    margin: 0 0 var(--space-md);
+}
+
+/* Quick Links */
+.quickLinksSection {
+    margin-bottom: var(--space-xl);
+    animation: slideUp var(--transition-slow) ease-out;
+    animation-delay: 0.2s;
+    animation-fill-mode: both;
+}
+
+.quickLinksGrid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: var(--space-md);
+}
+
+@media (min-width: 480px) {
+    .quickLinksGrid {
+        grid-template-columns: repeat(3, 1fr);
+    }
+}
+
+.quickLinkCard {
+    text-decoration: none;
+    display: block;
+}
+
+.quickCardInner {
+    height: 100%;
+    text-align: center;
+}
+
+.quickIcon {
+    display: block;
+    font-size: 2.5rem;
+    margin-bottom: var(--space-sm);
+}
+
+.quickTitle {
+    font-size: var(--font-size-lg);
+    font-weight: var(--font-weight-semibold);
+    color: var(--text-primary);
+    margin: 0 0 var(--space-xs);
+}
+
+.quickDescription {
+    font-size: var(--font-size-sm);
+    color: var(--text-secondary);
+    margin: 0;
+}
+
+/* Profile Summary */
+.profileSummary {
+    animation: slideUp var(--transition-slow) ease-out;
+    animation-delay: 0.3s;
+    animation-fill-mode: both;
+}
+
+.profileGrid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: var(--space-md);
+}
+
+@media (min-width: 480px) {
+    .profileGrid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+@media (min-width: 768px) {
+    .profileGrid {
+        grid-template-columns: repeat(3, 1fr);
+    }
+}
+
+.profileItem {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.profileLabel {
+    font-size: var(--font-size-xs);
+    font-weight: var(--font-weight-medium);
+    color: var(--text-tertiary);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.profileValue {
+    font-size: var(--font-size-md);
+    font-weight: var(--font-weight-medium);
+    color: var(--text-primary);
+}
