@@ -5,6 +5,14 @@ import { Card, CardContent } from '../../components/Card';
 import { Loader } from '../../components/Loader';
 import styles from './Dashboard.module.css';
 
+
+const getFirstName = (fullName: string | undefined) => {
+    if (!fullName) return '';
+    const titleRegex = /^(mr|mrs|ms|miss|dr|prof|engr|chief|arc|pharm|barr|alh|alhaja|pst|rev|bishop)\.?\s+/i;
+    const nameWithoutTitle = fullName.replace(titleRegex, '');
+    return nameWithoutTitle.split(' ')[0];
+};
+
 export function Dashboard() {
     const { profile, getPostings, getAPC } = useAuth();
     const [stats, setStats] = useState({
@@ -82,7 +90,7 @@ export function Dashboard() {
             <section className={styles.welcomeSection}>
                 <div className={styles.welcomeContent}>
                     <h1 className={styles.welcomeTitle}>
-                        Welcome back, <span className={styles.name}>{profile.full_name?.split(' ')[0]}</span>! 👋
+                        Welcome back, <span className={styles.name}>{getFirstName(profile.full_name)}</span>! 👋
                     </h1>
                     <p className={styles.welcomeSubtitle}>
                         Here's an overview of your NECO staff profile
