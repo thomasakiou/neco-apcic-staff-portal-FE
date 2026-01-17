@@ -240,3 +240,21 @@
     background: rgba(239, 68, 68, 0.15);
     color: var(--color-error);
 }
+.postedCard {
+    border-color: var(--color-success);
+    background: rgba(34, 197, 94, 0.05);
+    opacity: 0.8;
+}
+
+.postedBadge {
+    display: inline-flex;
+    align-items: center;
+    font-size: var(--font-size-xs);
+    font-weight: var(--font-weight-medium);
+    background: var(--color-success);
+    color: white;
+    padding: 2px 8px;
+    border-radius: var(--radius-full);
+    margin-left: auto;
+}
+

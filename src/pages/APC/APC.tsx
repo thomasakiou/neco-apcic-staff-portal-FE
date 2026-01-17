@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useAuth } from '../../context/AuthContext';
-import { APCData, AssignmentData, APC_FIELD_KEYS } from '../../types';
-import * as api from '../../services/api';
+import { APCData, AssignmentData, PostingData, APC_FIELD_KEYS } from '../../types';
+
 import { Card, CardContent } from '../../components/Card';
 import { Loader } from '../../components/Loader';
 import styles from './APC.module.css';
@@ -26,22 +26,44 @@ const FALLBACK_ASSIGNMENT_NAMES: Record<string, string> = {
 };
 
 export function APC() {
-    const { getAPC, profile, user } = useAuth();
+    const { getAPC, getPostings, getAssignments, profile, user } = useAuth();
     const [apc, setApc] = useState<APCData | null>(null);
     const [assignments, setAssignments] = useState<AssignmentData[]>([]);
+    const [postedAssignmentNames, setPostedAssignmentNames] = useState<Set<string>>(new Set());
     const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
 
     const loadData = useCallback(async () => {
+        // Don't fetch if profile hasn't been loaded yet
+        if (!profile) return;
+
+        setIsLoading(true);
         try {
-            // Load APC data
-            const apcData = await getAPC();
+            // Load APC data and Postings in parallel
+            const [apcData, postingsData] = await Promise.all([
+                getAPC(),
+                getPostings().catch(err => {
+                    console.error("Failed to load postings for APC filter:", err);
+                    return [] as PostingData[];
+                })
+            ]);
+
             setApc(apcData);
 
-            // Load assignments from the API
+            // Extract all assignment names from posting history for current year (2026)
+            const postedNames = new Set<string>();
+            postingsData.forEach(p => {
+                // p.year might be number or string. Check strictly for 2026.
+                if (String(p.year) === '2026') {
+                    p.assignments?.forEach(a => postedNames.add(a.toLowerCase().trim()));
+                }
+            });
+            setPostedAssignmentNames(postedNames);
+
+            // Load assignments map from the API
             if (user?.token) {
                 try {
-                    const assignmentsData = await api.getAssignments(user.token);
+                    const assignmentsData = await getAssignments();
                     setAssignments(assignmentsData);
                 } catch {
                     // Silently fail - will use fallback mapping
@@ -53,11 +75,14 @@ export function APC() {
         } finally {
             setIsLoading(false);
         }
-    }, [getAPC, user?.token]);
+    }, [getAPC, getPostings, getAssignments, user?.token, profile]);
 
     useEffect(() => {
-        loadData();
-    }, [loadData]);
+        // Only load data when profile is available
+        if (profile) {
+            loadData();
+        }
+    }, [loadData, profile]);
 
     if (isLoading) {
         return <Loader fullScreen text="Loading APC data..." />;
@@ -82,19 +107,33 @@ export function APC() {
         return apc[key as keyof APCData] as string | null;
     };
 
-    // Get active assignments with their resolved names
+    // Get active (or posted) assignments with their resolved names
     const activeAssignments = APC_FIELD_KEYS
-        .filter((key) => getAssignmentValue(key))
         .map((key) => {
-            const value = getAssignmentValue(key)!;
+            const value = getAssignmentValue(key);
             // Map the field key (e.g. 'ssce_int') to the assignment code (e.g. 'ssce-int')
             const assignmentCode = key.replace(/_/g, '-');
+            const name = getAssignmentName(assignmentCode);
+
+            // Check keys/names against posted set
+            const nameMatch = postedAssignmentNames.has(name.toLowerCase().trim());
+            const codeMatch = postedAssignmentNames.has(assignmentCode.toLowerCase().trim());
+            const keyMatch = postedAssignmentNames.has(key.toLowerCase().trim());
+
+            const isPosted = nameMatch || codeMatch || keyMatch;
+
             return {
                 key,
                 code: assignmentCode,
                 value,
-                name: getAssignmentName(assignmentCode),
+                name,
+                isPosted
             };
+        })
+        .filter((assignment) => {
+            // Show assignment if it is marked active in APC data OR if it has been marked as posted
+            // Only 'truthy' APC values are considered active.
+            return assignment.value || assignment.isPosted;
         });
 
     return (
@@ -133,7 +172,7 @@ export function APC() {
                             <Card variant="elevated">
                                 <CardContent className={styles.summaryCard}>
                                     <span className={styles.summaryIcon}>✅</span>
-                                    <span className={styles.summaryValue}>{activeAssignments.length}</span>
+                                    <span className={styles.summaryValue}>{activeAssignments.filter(a => !a.isPosted).length}</span>
                                     <span className={styles.summaryLabel}>Active Assignments</span>
                                 </CardContent>
                             </Card>
@@ -155,23 +194,29 @@ export function APC() {
                     </section>
 
                     {/* Active Assignments */}
-                    {activeAssignments.length > 0 && (
+                    {activeAssignments.length > 0 ? (
                         <section className={styles.section}>
                             <h2 className={styles.sectionTitle}>Active Assignments</h2>
                             <div className={styles.assignmentsGrid}>
                                 {activeAssignments.map((assignment) => (
-                                    <Card key={assignment.key} className={styles.assignmentCard}>
+                                    <Card
+                                        key={assignment.key}
+                                        className={`${styles.assignmentCard} ${assignment.isPosted ? styles.postedCard : ''}`}
+                                    >
                                         <CardContent>
                                             <div className={styles.assignmentHeader}>
                                                 <span className={styles.assignmentIcon}>✅</span>
                                                 <h3 className={styles.assignmentTitle}>{assignment.name}</h3>
+                                                {assignment.isPosted && (
+                                                    <span className={styles.postedBadge}>Posted</span>
+                                                )}
                                             </div>
                                         </CardContent>
                                     </Card>
                                 ))}
                             </div>
                         </section>
-                    )}
+                    ) : null}
 
                     {/* Staff Info */}
                     <section className={styles.section}>

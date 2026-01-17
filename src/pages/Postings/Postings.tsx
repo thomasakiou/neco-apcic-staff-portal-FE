@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useAuth } from '../../context/AuthContext';
 import { PostingData } from '../../types';
 import { Card, CardHeader, CardTitle, CardContent } from '../../components/Card';
@@ -6,24 +6,32 @@ import { Loader } from '../../components/Loader';
 import styles from './Postings.module.css';
 
 export function Postings() {
-    const { getPostings } = useAuth();
+    const { getPostings, profile } = useAuth();
     const [postings, setPostings] = useState<PostingData[]>([]);
     const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
 
+    const loadPostings = useCallback(async () => {
+        // Don't fetch if profile hasn't been loaded yet
+        if (!profile) return;
+
+        setIsLoading(true);
+        try {
+            const data = await getPostings();
+            setPostings(data);
+        } catch (err) {
+            setError(err instanceof Error ? err.message : 'Failed to load postings');
+        } finally {
+            setIsLoading(false);
+        }
+    }, [getPostings, profile]);
+
     useEffect(() => {
-        const loadPostings = async () => {
-            try {
-                const data = await getPostings();
-                setPostings(data);
-            } catch (err) {
-                setError(err instanceof Error ? err.message : 'Failed to load postings');
-            } finally {
-                setIsLoading(false);
-            }
-        };
-        loadPostings();
-    }, [getPostings]);
+        // Only load data when profile is available
+        if (profile) {
+            loadPostings();
+        }
+    }, [loadPostings, profile]);
 
     if (isLoading) {
         return <Loader fullScreen text="Loading postings..." />;
@@ -41,6 +49,9 @@ export function Postings() {
             return dateStr;
         }
     };
+
+    // Calculate total actual assignment cards across all postings
+    const totalAssignments = postings.reduce((acc, p) => acc + (p.assignments?.length || 0), 0);
 
     return (
         <div className={styles.container}>
@@ -61,14 +72,12 @@ export function Postings() {
                     <CardContent>
                         <div className={styles.statsRow}>
                             <div className={styles.statItem}>
-                                <span className={styles.statValue}>{postings.length}</span>
-                                <span className={styles.statLabel}>Total Postings</span>
+                                <span className={styles.statValue}>{totalAssignments}</span>
+                                <span className={styles.statLabel}>Total Assignments</span>
                             </div>
                             <div className={styles.statItem}>
-                                <span className={styles.statValue}>
-                                    {postings.reduce((sum, p) => sum + (p.count || 0), 0)}
-                                </span>
-                                <span className={styles.statLabel}>Total Count</span>
+                                <span className={styles.statValue}>{postings.length}</span>
+                                <span className={styles.statLabel}>Total Trips</span>
                             </div>
                         </div>
                     </CardContent>
@@ -91,86 +100,81 @@ export function Postings() {
                     </Card>
                 ) : (
                     <div className={styles.postingsList}>
-                        {postings.map((posting, index) => (
-                            <Card key={posting.id} className={styles.postingCard} style={{ animationDelay: `${index * 0.05}s` }}>
-                                <CardHeader>
-                                    <CardTitle>
-                                        {posting.year || 'N/A'} - {posting.state || 'N/A'}
-                                    </CardTitle>
-                                    <span className={styles.date}>{formatDate(posting.created_at)}</span>
-                                </CardHeader>
-                                <CardContent>
-                                    {/* Mandates */}
-                                    {posting.mandates && posting.mandates.length > 0 && (
-                                        <div className={styles.postingField}>
-                                            <span className={styles.fieldLabel}>Mandates</span>
-                                            <div className={styles.tagList}>
-                                                {posting.mandates.map((mandate, i) => (
-                                                    <span key={i} className={styles.tag}>
-                                                        {String(mandate)}
-                                                    </span>
-                                                ))}
+                        {postings.map((posting) => (
+                            <div key={posting.id} className={styles.postingGroup}>
+                                {/* Summary Card (Top Card) */}
+                                <Card className={styles.summaryCard}>
+                                    <CardHeader>
+                                        <CardTitle>{posting.year || 'N/A'}</CardTitle>
+                                        <span className={styles.date}>{formatDate(posting.created_at)}</span>
+                                    </CardHeader>
+                                    <CardContent>
+                                        <div className={styles.detailsGrid}>
+                                            <div className={styles.detailItem}>
+                                                <span className={styles.detailLabel}>Station</span>
+                                                <span className={styles.detailValue}>{posting.station || 'N/A'}</span>
+                                            </div>
+                                            <div className={styles.detailItem}>
+                                                <span className={styles.detailLabel}>CONRAISS</span>
+                                                <span className={styles.detailValue}>{posting.conraiss || 'N/A'}</span>
+                                            </div>
+                                            <div className={styles.detailItem}>
+                                                <span className={styles.detailLabel}>Count</span>
+                                                <span className={styles.detailValue}>{posting.count ?? 0}</span>
+                                            </div>
+                                            <div className={styles.detailItem}>
+                                                <span className={styles.detailLabel}>Nights</span>
+                                                <span className={styles.detailValue}>{posting.numb_of__nites ?? 'N/A'}</span>
                                             </div>
                                         </div>
-                                    )}
-
-                                    {/* Assignments */}
-                                    {posting.assignments && posting.assignments.length > 0 && (
-                                        <div className={styles.postingField}>
-                                            <span className={styles.fieldLabel}>Assignments</span>
-                                            <div className={styles.tagList}>
-                                                {posting.assignments.map((assignment, i) => (
-                                                    <span key={i} className={`${styles.tag} ${styles.assignmentTag}`}>
-                                                        {String(assignment)}
-                                                    </span>
-                                                ))}
+                                        {posting.description && (
+                                            <div className={styles.description}>
+                                                <span className={styles.fieldLabel}>Description</span>
+                                                <p className={styles.descriptionText}>{posting.description}</p>
                                             </div>
-                                        </div>
-                                    )}
+                                        )}
+                                    </CardContent>
+                                </Card>
 
-                                    {/* Venues */}
-                                    {posting.assignment_venue && posting.assignment_venue.length > 0 && (
-                                        <div className={styles.postingField}>
-                                            <span className={styles.fieldLabel}>Venues</span>
-                                            <div className={styles.tagList}>
-                                                {posting.assignment_venue.map((venue, i) => (
-                                                    <span key={i} className={`${styles.tag} ${styles.venueTag}`}>
-                                                        📍 {String(venue)}
-                                                    </span>
-                                                ))}
-                                            </div>
-                                        </div>
-                                    )}
+                                {/* Individual Assignment Cards */}
+                                {posting.assignments && posting.assignments.length > 0 && (
+                                    <div className={styles.assignmentsGrid}>
+                                        {posting.assignments.map((assignment, index) => (
+                                            <Card key={`${posting.id}-${index}`} className={styles.assignmentCard}>
+                                                <CardContent>
+                                                    {/* Assignment Name */}
+                                                    <div className={styles.postingField}>
+                                                        <span className={styles.fieldLabel}>Assignment</span>
+                                                        <span className={`${styles.tag} ${styles.assignmentTag}`}>
+                                                            {assignment}
+                                                        </span>
+                                                    </div>
 
-                                    {/* Details Grid */}
-                                    <div className={styles.detailsGrid}>
-                                        <div className={styles.detailItem}>
-                                            <span className={styles.detailLabel}>Station</span>
-                                            <span className={styles.detailValue}>{posting.station || 'N/A'}</span>
-                                        </div>
-                                        <div className={styles.detailItem}>
-                                            <span className={styles.detailLabel}>CONRAISS</span>
-                                            <span className={styles.detailValue}>{posting.conraiss || 'N/A'}</span>
-                                        </div>
-                                        <div className={styles.detailItem}>
-                                            <span className={styles.detailLabel}>Nights</span>
-                                            <span className={styles.detailValue}>{posting.numb_of__nites ?? 'N/A'}</span>
-                                        </div>
-                                        <div className={styles.detailItem}>
-                                            <span className={styles.detailLabel}>Count</span>
-                                            <span className={styles.detailValue}>{posting.count ?? 0}</span>
-                                        </div>
+                                                    {/* Mandate (Split by index) */}
+                                                    {posting.mandates && posting.mandates.length > index && (
+                                                        <div className={styles.postingField}>
+                                                            <span className={styles.fieldLabel}>Mandate</span>
+                                                            <span className={styles.tag}>
+                                                                {String(posting.mandates[index])}
+                                                            </span>
+                                                        </div>
+                                                    )}
+
+                                                    {/* Venue (Split by index) */}
+                                                    {posting.assignment_venue && posting.assignment_venue.length > index && (
+                                                        <div className={styles.postingField}>
+                                                            <span className={styles.fieldLabel}>Venue</span>
+                                                            <span className={`${styles.tag} ${styles.venueTag}`}>
+                                                                📍 {String(posting.assignment_venue[index])}
+                                                            </span>
+                                                        </div>
+                                                    )}
+                                                </CardContent>
+                                            </Card>
+                                        ))}
                                     </div>
-
-                                    {/* Description */}
-                                    {posting.description && (
-                                        <div className={styles.description}>
-                                            <span className={styles.fieldLabel}>Description</span>
-                                            <p className={styles.descriptionText}>{posting.description}</p>
-                                        </div>
-                                    )}
-                                </CardContent>
-                            </Card>
+                                )}
+                            </div>
                         ))}
                     </div>
                 )}
