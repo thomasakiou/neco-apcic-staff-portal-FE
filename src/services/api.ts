@@ -81,10 +81,11 @@ export async function updateContact(
     );
 }
 
-// Get APC data
-export async function getAPC(token: string): Promise<APCData | null> {
+// Get APC data (regular or HOD based on isHod flag)
+export async function getAPC(token: string, isHod: boolean = false): Promise<APCData | null> {
     try {
-        return await request<APCData>(`${API_BASE}/me/apc`, {}, token);
+        const endpoint = isHod ? `${API_BASE}/me/hod-apc` : `${API_BASE}/me/apc`;
+        return await request<APCData>(endpoint, {}, token);
     } catch (error) {
         // Return null if no APC data exists
         if (error instanceof ApiError && error.status === 404) {
@@ -94,9 +95,10 @@ export async function getAPC(token: string): Promise<APCData | null> {
     }
 }
 
-// Get posting history
-export async function getPostings(token: string): Promise<PostingListResponse> {
-    return request<PostingListResponse>(`${API_BASE}/me/posting`, {}, token);
+// Get posting history (regular or HOD based on isHod flag)
+export async function getPostings(token: string, isHod: boolean = false): Promise<PostingListResponse> {
+    const endpoint = isHod ? `${API_BASE}/me/hod-posting` : `${API_BASE}/me/posting`;
+    return request<PostingListResponse>(endpoint, {}, token);
 }
 
 // Get all assignments (for mapping codes to names)

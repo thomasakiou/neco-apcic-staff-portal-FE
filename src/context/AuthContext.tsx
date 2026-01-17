@@ -94,12 +94,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
     const getAPC = async (): Promise<APCData | null> => {
         if (!user?.token) throw new Error('Not authenticated');
-        return api.getAPC(user.token);
+        return api.getAPC(user.token, profile?.is_hod || false);
     };
 
     const getPostings = async (): Promise<PostingData[]> => {
         if (!user?.token) throw new Error('Not authenticated');
-        const response = await api.getPostings(user.token);
+        const response = await api.getPostings(user.token, profile?.is_hod || false);
         return response.items || [];
     };
 
