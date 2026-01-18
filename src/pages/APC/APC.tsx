@@ -141,7 +141,7 @@ export function APC() {
             <header className={styles.header}>
                 <h1 className={styles.title}>APC Assignments</h1>
                 <p className={styles.subtitle}>
-                    Your Annual Performance Calendar for 2026
+                    Your Annual Posting Calendar for 2026
                 </p>
             </header>
 
