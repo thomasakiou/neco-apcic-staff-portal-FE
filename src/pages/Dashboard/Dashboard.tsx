@@ -115,7 +115,7 @@ export function Dashboard() {
             to: '/apc',
             icon: '📋',
             title: 'APC Assignments',
-            description: 'View your annual work plan',
+            description: 'View your Annual Posting Calendar (APC)',
             color: 'accent',
         },
         {
