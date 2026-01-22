@@ -1,7 +1,0 @@
-GET /api/staff-portal/assignments
-GET /api/staff-portal/me
-GET /api/staff-portal/me/apc
-PUT /api/staff-portal/me/contact
-GET /api/staff-portal/me/hod-apc
-GET /api/staff-portal/me/hod-posting
-GET /api/staff-portal/me/posting

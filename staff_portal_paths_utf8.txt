@@ -1,9 +1,0 @@
-﻿/api/staff-portal/assignments
-/api/staff-portal/locks
-/api/staff-portal/login
-/api/staff-portal/me
-/api/staff-portal/me/apc
-/api/staff-portal/me/contact
-/api/staff-portal/me/hod-apc
-/api/staff-portal/me/hod-posting
-/api/staff-portal/me/posting
