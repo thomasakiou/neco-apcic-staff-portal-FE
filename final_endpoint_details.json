@@ -1,0 +1,224 @@
+{
+  "/api/final-posting": {
+    "get": {
+      "tags": [
+        "Final Posting"
+      ],
+      "summary": "Get All Posting",
+      "description": "Get all final posting members with pagination.",
+      "operationId": "get_all_posting_api_final_posting_get",
+      "security": [
+        {
+          "HTTPBearer": []
+        }
+      ],
+      "parameters": [
+        {
+          "name": "skip",
+          "in": "query",
+          "required": false,
+          "schema": {
+            "type": "integer",
+            "minimum": 0,
+            "description": "Number of records to skip",
+            "default": 0,
+            "title": "Skip"
+          },
+          "description": "Number of records to skip"
+        },
+        {
+          "name": "limit",
+          "in": "query",
+          "required": false,
+          "schema": {
+            "type": "integer",
+            "maximum": 100000,
+            "minimum": 1,
+            "description": "Maximum records to return",
+            "default": 100000,
+            "title": "Limit"
+          },
+          "description": "Maximum records to return"
+        }
+      ],
+      "responses": {
+        "200": {
+          "description": "Successful Response",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/FinalPostingListResponse"
+              }
+            }
+          }
+        },
+        "422": {
+          "description": "Validation Error",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/HTTPValidationError"
+              }
+            }
+          }
+        }
+      }
+    },
+    "post": {
+      "tags": [
+        "Final Posting"
+      ],
+      "summary": "Create Posting",
+      "description": "Create a new final posting member.",
+      "operationId": "create_posting_api_final_posting_post",
+      "security": [
+        {
+          "HTTPBearer": []
+        }
+      ],
+      "requestBody": {
+        "required": true,
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/FinalPostingCreate"
+            }
+          }
+        }
+      },
+      "responses": {
+        "201": {
+          "description": "Successful Response",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/FinalPostingResponse"
+              }
+            }
+          }
+        },
+        "422": {
+          "description": "Validation Error",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/HTTPValidationError"
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "/api/hod-final-posting": {
+    "get": {
+      "tags": [
+        "HOD Final Posting"
+      ],
+      "summary": "Get All Hod Final Posting",
+      "description": "Get all HOD final posting members with pagination.",
+      "operationId": "get_all_hod_final_posting_api_hod_final_posting_get",
+      "security": [
+        {
+          "HTTPBearer": []
+        }
+      ],
+      "parameters": [
+        {
+          "name": "skip",
+          "in": "query",
+          "required": false,
+          "schema": {
+            "type": "integer",
+            "minimum": 0,
+            "description": "Number of records to skip",
+            "default": 0,
+            "title": "Skip"
+          },
+          "description": "Number of records to skip"
+        },
+        {
+          "name": "limit",
+          "in": "query",
+          "required": false,
+          "schema": {
+            "type": "integer",
+            "maximum": 100000,
+            "minimum": 1,
+            "description": "Maximum records to return",
+            "default": 100000,
+            "title": "Limit"
+          },
+          "description": "Maximum records to return"
+        }
+      ],
+      "responses": {
+        "200": {
+          "description": "Successful Response",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/HODFinalPostingListResponse"
+              }
+            }
+          }
+        },
+        "422": {
+          "description": "Validation Error",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/HTTPValidationError"
+              }
+            }
+          }
+        }
+      }
+    },
+    "post": {
+      "tags": [
+        "HOD Final Posting"
+      ],
+      "summary": "Create Hod Final Posting",
+      "description": "Create a new HOD final posting member.",
+      "operationId": "create_hod_final_posting_api_hod_final_posting_post",
+      "security": [
+        {
+          "HTTPBearer": []
+        }
+      ],
+      "requestBody": {
+        "required": true,
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/HODFinalPostingCreate"
+            }
+          }
+        }
+      },
+      "responses": {
+        "201": {
+          "description": "Successful Response",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/HODFinalPostingResponse"
+              }
+            }
+          }
+        },
+        "422": {
+          "description": "Validation Error",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/HTTPValidationError"
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}

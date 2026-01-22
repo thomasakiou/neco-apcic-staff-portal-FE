@@ -1,0 +1,12 @@
+﻿/api/final-posting
+/api/final-posting/all
+/api/final-posting/archive
+/api/final-posting/bulk-delete
+/api/final-posting/{posting_id}
+/api/hod-final-posting
+/api/hod-final-posting/all
+/api/hod-final-posting/archive
+/api/hod-final-posting/bulk
+/api/hod-final-posting/bulk-delete
+/api/hod-final-posting/upload
+/api/hod-final-posting/{posting_id}

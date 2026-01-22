@@ -1,0 +1,31 @@
+{
+  "properties": {
+    "items": {
+      "items": {
+        "$ref": "#/components/schemas/HODFinalPostingResponse"
+      },
+      "type": "array",
+      "title": "Items"
+    },
+    "total": {
+      "type": "integer",
+      "title": "Total"
+    },
+    "skip": {
+      "type": "integer",
+      "title": "Skip"
+    },
+    "limit": {
+      "type": "integer",
+      "title": "Limit"
+    }
+  },
+  "type": "object",
+  "required": [
+    "items",
+    "total",
+    "skip",
+    "limit"
+  ],
+  "title": "HODFinalPostingListResponse"
+}

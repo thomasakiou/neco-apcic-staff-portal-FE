@@ -1,0 +1,22 @@
+{
+  "properties": {
+    "items": {
+      "items": {
+        "$ref": "#/components/schemas/StaffPortalHODPostingResponse"
+      },
+      "type": "array",
+      "title": "Items"
+    },
+    "total": {
+      "type": "integer",
+      "title": "Total"
+    }
+  },
+  "type": "object",
+  "required": [
+    "items",
+    "total"
+  ],
+  "title": "StaffPortalHODPostingListResponse",
+  "description": "List of HOD posting records for staff portal."
+}

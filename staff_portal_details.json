@@ -1,0 +1,232 @@
+{
+  "/api/staff-portal/locks": {
+    "get": {
+      "tags": [
+        "Staff Portal"
+      ],
+      "summary": "Get Portal Locks",
+      "description": "Get current staff portal lock status (public endpoint).\n\nReturns the lock status for login, APC, and posting.\nThis allows the frontend to show appropriate messages to users.",
+      "operationId": "get_portal_locks_api_staff_portal_locks_get",
+      "responses": {
+        "200": {
+          "description": "Successful Response",
+          "content": {
+            "application/json": {
+              "schema": {}
+            }
+          }
+        }
+      }
+    }
+  },
+  "/api/staff-portal/me": {
+    "get": {
+      "tags": [
+        "Staff Portal"
+      ],
+      "summary": "Get My Sdl",
+      "description": "Get current staff member's SDL data.",
+      "operationId": "get_my_sdl_api_staff_portal_me_get",
+      "responses": {
+        "200": {
+          "description": "Successful Response",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/StaffPortalSDLResponse"
+              }
+            }
+          }
+        }
+      },
+      "security": [
+        {
+          "OAuth2PasswordBearer": []
+        }
+      ]
+    }
+  },
+  "/api/staff-portal/me/apc": {
+    "get": {
+      "tags": [
+        "Staff Portal"
+      ],
+      "summary": "Get My Apc",
+      "description": "Get current staff member's APC data (read-only).",
+      "operationId": "get_my_apc_api_staff_portal_me_apc_get",
+      "responses": {
+        "200": {
+          "description": "Successful Response",
+          "content": {
+            "application/json": {
+              "schema": {
+                "anyOf": [
+                  {
+                    "$ref": "#/components/schemas/StaffPortalAPCResponse"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "title": "Response Get My Apc Api Staff Portal Me Apc Get"
+              }
+            }
+          }
+        }
+      },
+      "security": [
+        {
+          "OAuth2PasswordBearer": []
+        }
+      ]
+    }
+  },
+  "/api/staff-portal/me/posting": {
+    "get": {
+      "tags": [
+        "Staff Portal"
+      ],
+      "summary": "Get My Posting",
+      "description": "Get current staff member's posting data (read-only).",
+      "operationId": "get_my_posting_api_staff_portal_me_posting_get",
+      "responses": {
+        "200": {
+          "description": "Successful Response",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/StaffPortalPostingListResponse"
+              }
+            }
+          }
+        }
+      },
+      "security": [
+        {
+          "OAuth2PasswordBearer": []
+        }
+      ]
+    }
+  },
+  "/api/staff-portal/me/hod-apc": {
+    "get": {
+      "tags": [
+        "Staff Portal"
+      ],
+      "summary": "Get My Hod Apc",
+      "description": "Get current staff member's HOD APC data (read-only).",
+      "operationId": "get_my_hod_apc_api_staff_portal_me_hod_apc_get",
+      "responses": {
+        "200": {
+          "description": "Successful Response",
+          "content": {
+            "application/json": {
+              "schema": {
+                "anyOf": [
+                  {
+                    "$ref": "#/components/schemas/StaffPortalHODAPCResponse"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "title": "Response Get My Hod Apc Api Staff Portal Me Hod Apc Get"
+              }
+            }
+          }
+        }
+      },
+      "security": [
+        {
+          "OAuth2PasswordBearer": []
+        }
+      ]
+    }
+  },
+  "/api/staff-portal/me/hod-posting": {
+    "get": {
+      "tags": [
+        "Staff Portal"
+      ],
+      "summary": "Get My Hod Posting",
+      "description": "Get current staff member's HOD posting data (read-only).",
+      "operationId": "get_my_hod_posting_api_staff_portal_me_hod_posting_get",
+      "responses": {
+        "200": {
+          "description": "Successful Response",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/StaffPortalHODPostingListResponse"
+              }
+            }
+          }
+        }
+      },
+      "security": [
+        {
+          "OAuth2PasswordBearer": []
+        }
+      ]
+    }
+  },
+  "/api/staff-portal/assignments": {
+    "get": {
+      "tags": [
+        "Staff Portal"
+      ],
+      "summary": "Get Assignments",
+      "description": "Get list of assignments (read-only for staff portal).\n\nThis endpoint allows staff to view available assignments.",
+      "operationId": "get_assignments_api_staff_portal_assignments_get",
+      "security": [
+        {
+          "OAuth2PasswordBearer": []
+        }
+      ],
+      "parameters": [
+        {
+          "name": "skip",
+          "in": "query",
+          "required": false,
+          "schema": {
+            "type": "integer",
+            "default": 0,
+            "title": "Skip"
+          }
+        },
+        {
+          "name": "limit",
+          "in": "query",
+          "required": false,
+          "schema": {
+            "type": "integer",
+            "default": 100,
+            "title": "Limit"
+          }
+        }
+      ],
+      "responses": {
+        "200": {
+          "description": "Successful Response",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AssignmentListResponse"
+              }
+            }
+          }
+        },
+        "422": {
+          "description": "Validation Error",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/HTTPValidationError"
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}

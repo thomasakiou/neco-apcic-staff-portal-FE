@@ -1,0 +1,377 @@
+{
+  "StaffPortalHODPostingResponse": {
+    "properties": {
+      "id": {
+        "type": "string",
+        "format": "uuid",
+        "title": "Id"
+      },
+      "file_no": {
+        "type": "string",
+        "title": "File No"
+      },
+      "name": {
+        "type": "string",
+        "title": "Name"
+      },
+      "state": {
+        "anyOf": [
+          {},
+          {
+            "type": "null"
+          }
+        ],
+        "title": "State"
+      },
+      "station": {
+        "anyOf": [
+          {
+            "type": "string"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "title": "Station"
+      },
+      "conraiss": {
+        "anyOf": [
+          {
+            "type": "string"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "title": "Conraiss"
+      },
+      "year": {
+        "anyOf": [
+          {
+            "type": "string"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "title": "Year"
+      },
+      "assignment_venue": {
+        "anyOf": [
+          {
+            "items": {},
+            "type": "array"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "title": "Assignment Venue"
+      },
+      "assignments": {
+        "anyOf": [
+          {
+            "items": {},
+            "type": "array"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "title": "Assignments"
+      },
+      "mandates": {
+        "anyOf": [
+          {
+            "items": {},
+            "type": "array"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "title": "Mandates"
+      },
+      "count": {
+        "anyOf": [
+          {
+            "type": "integer"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "title": "Count",
+        "default": 0
+      },
+      "posted_for": {
+        "anyOf": [
+          {
+            "type": "integer"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "title": "Posted For"
+      },
+      "to_be_posted": {
+        "anyOf": [
+          {
+            "type": "integer"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "title": "To Be Posted",
+        "default": 0
+      },
+      "numb_of__nites": {
+        "anyOf": [
+          {
+            "type": "integer"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "title": "Numb Of  Nites"
+      },
+      "description": {
+        "anyOf": [
+          {
+            "type": "string"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "title": "Description"
+      },
+      "created_at": {
+        "anyOf": [
+          {
+            "type": "string",
+            "format": "date-time"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "title": "Created At"
+      },
+      "updated_at": {
+        "anyOf": [
+          {
+            "type": "string",
+            "format": "date-time"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "title": "Updated At"
+      }
+    },
+    "type": "object",
+    "required": [
+      "id",
+      "file_no",
+      "name"
+    ],
+    "title": "StaffPortalHODPostingResponse",
+    "description": "HOD Posting data response for staff portal (read-only)."
+  },
+  "HODFinalPostingResponse": {
+    "properties": {
+      "file_no": {
+        "type": "string",
+        "maxLength": 50,
+        "title": "File No"
+      },
+      "name": {
+        "type": "string",
+        "maxLength": 255,
+        "title": "Name"
+      },
+      "state": {
+        "anyOf": [
+          {
+            "type": "string",
+            "maxLength": 255
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "title": "State"
+      },
+      "station": {
+        "anyOf": [
+          {
+            "type": "string",
+            "maxLength": 255
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "title": "Station"
+      },
+      "conraiss": {
+        "anyOf": [
+          {
+            "type": "string",
+            "maxLength": 50
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "title": "Conraiss"
+      },
+      "year": {
+        "anyOf": [
+          {
+            "type": "string",
+            "maxLength": 10
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "title": "Year"
+      },
+      "assignment_venue": {
+        "anyOf": [
+          {
+            "items": {},
+            "type": "array"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "title": "Assignment Venue"
+      },
+      "assignments": {
+        "anyOf": [
+          {
+            "items": {},
+            "type": "array"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "title": "Assignments"
+      },
+      "mandates": {
+        "anyOf": [
+          {
+            "items": {},
+            "type": "array"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "title": "Mandates"
+      },
+      "count": {
+        "anyOf": [
+          {
+            "type": "integer"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "title": "Count",
+        "default": 0
+      },
+      "posted_for": {
+        "anyOf": [
+          {
+            "type": "integer"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "title": "Posted For"
+      },
+      "to_be_posted": {
+        "anyOf": [
+          {
+            "type": "integer"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "title": "To Be Posted",
+        "default": 0
+      },
+      "numb_of__nites": {
+        "anyOf": [
+          {
+            "type": "integer"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "title": "Numb Of  Nites"
+      },
+      "description": {
+        "anyOf": [
+          {
+            "type": "string"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "title": "Description"
+      },
+      "id": {
+        "type": "string",
+        "format": "uuid",
+        "title": "Id"
+      },
+      "created_at": {
+        "anyOf": [
+          {
+            "type": "string",
+            "format": "date-time"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "title": "Created At"
+      },
+      "updated_at": {
+        "anyOf": [
+          {
+            "type": "string",
+            "format": "date-time"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "title": "Updated At"
+      }
+    },
+    "type": "object",
+    "required": [
+      "file_no",
+      "name",
+      "id"
+    ],
+    "title": "HODFinalPostingResponse"
+  }
+}
