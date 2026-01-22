@@ -4,12 +4,14 @@ import { PostingData } from '../../types';
 import { Card, CardHeader, CardTitle, CardContent } from '../../components/Card';
 import { Loader } from '../../components/Loader';
 import styles from './Postings.module.css';
+import { APCData } from '../../types';
 
 export function Postings() {
-    const { getPostings, profile } = useAuth();
+    const { getPostings, getAPC, profile } = useAuth();
     const [postings, setPostings] = useState<PostingData[]>([]);
     const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
+    const [apc, setApc] = useState<APCData | null>(null);    
 
     const loadPostings = useCallback(async () => {
         // Don't fetch if profile hasn't been loaded yet
@@ -17,14 +19,18 @@ export function Postings() {
 
         setIsLoading(true);
         try {
-            const data = await getPostings();
-            setPostings(data);
+            const [postingsData, apcData] = await Promise.all([
+                getPostings(),
+                getAPC()
+            ]);
+            setPostings(postingsData);
+            setApc(apcData);
         } catch (err) {
-            setError(err instanceof Error ? err.message : 'Failed to load postings');
+            setError(err instanceof Error ? err.message : 'Failed to load data');
         } finally {
             setIsLoading(false);
         }
-    }, [getPostings, profile]);
+    }, [getPostings, getAPC, profile]);
 
     useEffect(() => {
         // Only load data when profile is available
@@ -50,8 +56,12 @@ export function Postings() {
         }
     };
 
-    // Calculate total actual assignment cards across all postings
-    const totalAssignments = postings.reduce((acc, p) => acc + (p.assignments?.length || 0), 0);
+    // Calculate total assignments across all postings (always use count)
+    // const totalAssignments = postings.reduce((acc, p) => acc + (p.count || 0), 0);
+    const totalAssignments = apc?.count || 0;
+    
+    // Calculate total posted_for across all postings
+    const totalPostedFor = postings.reduce((acc, p) => acc + (p.posted_for || 0), 0);
 
     return (
         <div className={styles.container}>
@@ -76,8 +86,8 @@ export function Postings() {
                                 <span className={styles.statLabel}>Total Assignments</span>
                             </div>
                             <div className={styles.statItem}>
-                                <span className={styles.statValue}>{postings.length}</span>
-                                <span className={styles.statLabel}>Total Trips</span>
+                                <span className={styles.statValue}>{totalPostedFor}</span>
+                                <span className={styles.statLabel}>Posted For</span>
                             </div>
                         </div>
                     </CardContent>
@@ -122,17 +132,7 @@ export function Postings() {
                                                 <span className={styles.detailLabel}>Count</span>
                                                 <span className={styles.detailValue}>{posting.count ?? 0}</span>
                                             </div>
-                                            <div className={styles.detailItem}>
-                                                <span className={styles.detailLabel}>Nights</span>
-                                                <span className={styles.detailValue}>{posting.numb_of__nites ?? 'N/A'}</span>
-                                            </div>
                                         </div>
-                                        {posting.description && (
-                                            <div className={styles.description}>
-                                                <span className={styles.fieldLabel}>Description</span>
-                                                <p className={styles.descriptionText}>{posting.description}</p>
-                                            </div>
-                                        )}
                                     </CardContent>
                                 </Card>
 
@@ -167,6 +167,14 @@ export function Postings() {
                                                             <span className={`${styles.tag} ${styles.venueTag}`}>
                                                                 📍 {String(posting.assignment_venue[index])}
                                                             </span>
+                                                        </div>
+                                                    )}
+
+                                                    {/* Description */}
+                                                    {posting.description && (
+                                                        <div className={styles.postingField}>
+                                                            <span className={styles.fieldLabel}>Description</span>
+                                                            <p className={styles.descriptionText}>{posting.description}</p>
                                                         </div>
                                                     )}
                                                 </CardContent>
