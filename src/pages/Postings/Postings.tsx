@@ -4,14 +4,34 @@ import { PostingData } from '../../types';
 import { Card, CardHeader, CardTitle, CardContent } from '../../components/Card';
 import { Loader } from '../../components/Loader';
 import styles from './Postings.module.css';
-import { APCData } from '../../types';
+import { APCData, AssignmentData, APC_FIELD_KEYS } from '../../types';
+
+// Fallback mapping when API is not accessible (APCIC staff portal token doesn't have access to admin endpoints)
+const FALLBACK_ASSIGNMENT_NAMES: Record<string, string> = {
+    'tt': 'Token Test',
+    'mar-accr': 'March Accreditation',
+    'ncee': 'NCEE Examination',
+    'gifted': 'Gifted Examination',
+    'becep': 'BECEP Examination',
+    'bece-mrkp': 'BECE Marking',
+    'ssce-int': 'SSCE Internal Examination',
+    'swapping': 'Swapping',
+    'ssce-int-mrk': 'SSCE Internal Marking',
+    'oct-accr': 'October Accreditation',
+    'ssce-ext': 'SSCE External Examination',
+    'ssce-ext-mrk': 'SSCE External Marking',
+    'pur-samp': 'Purchasing/Sampling',
+    'int-audit': 'Internal Audit',
+    'stock-tk': 'Stock Taking',
+};
 
 export function Postings() {
-    const { getPostings, getAPC, profile } = useAuth();
+    const { getPostings, getAPC, getAssignments, profile, user } = useAuth();
     const [postings, setPostings] = useState<PostingData[]>([]);
+    const [assignments, setAssignments] = useState<AssignmentData[]>([]);
     const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
-    const [apc, setApc] = useState<APCData | null>(null);    
+    const [apc, setApc] = useState<APCData | null>(null);
 
     const loadPostings = useCallback(async () => {
         // Don't fetch if profile hasn't been loaded yet
@@ -25,12 +45,23 @@ export function Postings() {
             ]);
             setPostings(postingsData);
             setApc(apcData);
+
+            // Load assignments map from the API
+            if (user?.token) {
+                try {
+                    const assignmentsData = await getAssignments();
+                    setAssignments(assignmentsData);
+                } catch {
+                    // Silently fail - will use fallback mapping
+                    console.log('Using fallback assignment names (API not accessible)');
+                }
+            }
         } catch (err) {
             setError(err instanceof Error ? err.message : 'Failed to load data');
         } finally {
             setIsLoading(false);
         }
-    }, [getPostings, getAPC, profile]);
+    }, [getPostings, getAPC, getAssignments, user?.token, profile]);
 
     useEffect(() => {
         // Only load data when profile is available
@@ -58,8 +89,52 @@ export function Postings() {
 
     // Calculate total assignments across all postings (always use count)
     // const totalAssignments = postings.reduce((acc, p) => acc + (p.count || 0), 0);
-    const totalAssignments = apc?.count || 0;
-    
+    // Build a code-to-name map from assignments (if available)
+    const codeToNameMap: Record<string, string> = { ...FALLBACK_ASSIGNMENT_NAMES };
+    assignments.forEach((a) => {
+        // Store by lowercase code for case-insensitive matching
+        codeToNameMap[a.code.toLowerCase()] = a.name;
+    });
+
+    // Get assignment name from code
+    const getAssignmentName = (code: string): string => {
+        const normalizedCode = code.toLowerCase().trim();
+        return codeToNameMap[normalizedCode] || code;
+    };
+
+    // Calculate active assignments count (assignments in APC that are not yet posted)
+    const calculateActiveAssignments = () => {
+        if (!apc) return 0;
+
+        // Extract all assignment names from posting history for current year (2026)
+        const postedAssignmentNames = new Set<string>();
+        postings.forEach(p => {
+            if (String(p.year) === '2026') {
+                p.assignments?.forEach(a => postedAssignmentNames.add(a.toLowerCase().trim()));
+            }
+        });
+
+        // Count active APC assignments not in posted list
+        return APC_FIELD_KEYS.reduce((count, key) => {
+            const value = apc[key as keyof APCData];
+            if (!value) return count; // Skip if not active in APC
+
+            // Check if posted
+            const assignmentCode = key.replace(/_/g, '-');
+            const name = getAssignmentName(assignmentCode);
+
+            const nameMatch = postedAssignmentNames.has(name.toLowerCase().trim());
+            const codeMatch = postedAssignmentNames.has(assignmentCode.toLowerCase().trim());
+            const keyMatch = postedAssignmentNames.has(key.toLowerCase().trim());
+
+            const isPosted = nameMatch || codeMatch || keyMatch;
+
+            return isPosted ? count : count + 1;
+        }, 0);
+    };
+
+    const totalAssignments = calculateActiveAssignments();
+
     // Calculate total posted_for across all postings
     const totalPostedFor = postings.reduce((acc, p) => acc + (p.posted_for || 0), 0);
 

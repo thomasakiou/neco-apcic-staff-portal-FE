@@ -176,13 +176,7 @@ export function APC() {
                                     <span className={styles.summaryLabel}>Active Assignments</span>
                                 </CardContent>
                             </Card>
-                            <Card variant="elevated">
-                                <CardContent className={styles.summaryCard}>
-                                    <span className={styles.summaryIcon}>🔢</span>
-                                    <span className={styles.summaryValue}>{apc.count || 0}</span>
-                                    <span className={styles.summaryLabel}>Total Count</span>
-                                </CardContent>
-                            </Card>
+
                             <Card variant="elevated">
                                 <CardContent className={styles.summaryCard}>
                                     <span className={styles.summaryIcon}>📅</span>
