@@ -92,11 +92,11 @@ export function Login() {
                             <Input
                                 label="Date of Birth"
                                 type="password"
-                                placeholder="Enter DOB (ddmmyy format, e.g., 260481)"
+                                placeholder="Enter DOB (ddmmyyyy format, e.g., 26041981)"
                                 value={password}
                                 onChange={(e) => setPassword(e.target.value)}
                                 autoComplete="current-password"
-                                hint="Format: DDMMYY (e.g., 26th April 1981 = 260481)"
+                                hint="Format: DDMMYYYY (e.g., 26th April 1981 = 26041981)"
                             />
                         </div>
 
