@@ -81,10 +81,19 @@ export async function updateContact(
     );
 }
 
-// Get APC data (regular or HOD based on isHod flag)
-export async function getAPC(token: string, isHod: boolean = false): Promise<APCData | null> {
+// Staff type for APC/Posting endpoints
+export type StaffType = 'regular' | 'hod' | 'drivers' | 'typesetting';
+
+// Get APC data based on staff type
+export async function getAPC(token: string, staffType: StaffType = 'regular'): Promise<APCData | null> {
     try {
-        const endpoint = isHod ? `${API_BASE}/me/hod-apc` : `${API_BASE}/me/apc`;
+        const endpointMap: Record<StaffType, string> = {
+            'regular': `${API_BASE}/me/apc`,
+            'hod': `${API_BASE}/me/hod-apc`,
+            'drivers': `${API_BASE}/me/drivers-apc`,
+            'typesetting': `${API_BASE}/me/typesetting-apc`,
+        };
+        const endpoint = endpointMap[staffType];
         return await request<APCData>(endpoint, {}, token);
     } catch (error) {
         // Return null if no APC data exists
@@ -95,9 +104,15 @@ export async function getAPC(token: string, isHod: boolean = false): Promise<APC
     }
 }
 
-// Get posting history (regular or HOD based on isHod flag)
-export async function getPostings(token: string, isHod: boolean = false): Promise<PostingListResponse> {
-    const endpoint = isHod ? `${API_BASE}/me/hod-posting` : `${API_BASE}/me/posting`;
+// Get posting history based on staff type
+export async function getPostings(token: string, staffType: StaffType = 'regular'): Promise<PostingListResponse> {
+    const endpointMap: Record<StaffType, string> = {
+        'regular': `${API_BASE}/me/posting`,
+        'hod': `${API_BASE}/me/hod-posting`,
+        'drivers': `${API_BASE}/me/drivers-posting`,
+        'typesetting': `${API_BASE}/me/typesetting-posting`,
+    };
+    const endpoint = endpointMap[staffType];
     return request<PostingListResponse>(endpoint, {}, token);
 }
 

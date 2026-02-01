@@ -19,9 +19,13 @@ export interface StaffProfile {
     remark?: string | null;
     active?: boolean;
     is_hod?: boolean;
+    is_driver?: boolean;
+    is_typesetting?: boolean;
     is_education?: boolean;
     is_state_cordinator?: boolean;
     is_director?: boolean;
+    is_secretary?: boolean;
+    others?: boolean;
     created_at?: string | null;
     updated_at?: string | null;
 }
@@ -50,6 +54,7 @@ export interface APCData {
     pur_samp?: string | null;
     int_audit?: string | null;
     stock_tk?: string | null;
+    type_of_vehicle?: string | null;
     count?: number | null;
     remark?: string | null;
     year?: string | null;

@@ -234,6 +234,12 @@ export function APC() {
                                         <span className={styles.infoLabel}>CONRAISS</span>
                                         <span className={styles.infoValue}>{apc.conraiss || 'N/A'}</span>
                                     </div>
+                                    {apc.type_of_vehicle && (
+                                        <div className={styles.infoItem}>
+                                            <span className={styles.infoLabel}>Vehicle Type</span>
+                                            <span className={styles.infoValue}>{apc.type_of_vehicle}</span>
+                                        </div>
+                                    )}
                                     <div className={styles.infoItem}>
                                         <span className={styles.infoLabel}>Status</span>
                                         <span className={`${styles.statusBadge} ${apc.active ? styles.active : styles.inactive}`}>

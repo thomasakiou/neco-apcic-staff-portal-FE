@@ -134,10 +134,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
         const promise = (async () => {
             try {
-                // Must access profile ref or wait? Profile is in state.
-                // Assuming profile is loaded if we are here (guarded by consumers mostly)
-                // But for safety, fallback to false if profile missing (rare if auth)
-                const data = await api.getAPC(user.token, profile?.is_hod || false);
+                // Determine staff type: HOD > Drivers > Typesetting > Regular
+                let staffType: api.StaffType = 'regular';
+                if (profile?.is_hod) {
+                    staffType = 'hod';
+                } else if (profile?.is_driver) {
+                    staffType = 'drivers';
+                } else if (profile?.is_typesetting) {
+                    staffType = 'typesetting';
+                }
+                const data = await api.getAPC(user.token, staffType);
                 setApcCache(data);
                 return data;
             } catch (e) {
@@ -159,7 +165,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
         const promise = (async () => {
             try {
-                const response = await api.getPostings(user.token, profile?.is_hod || false);
+                // Determine staff type: HOD > Drivers > Typesetting > Regular
+                let staffType: api.StaffType = 'regular';
+                if (profile?.is_hod) {
+                    staffType = 'hod';
+                } else if (profile?.is_driver) {
+                    staffType = 'drivers';
+                } else if (profile?.is_typesetting) {
+                    staffType = 'typesetting';
+                }
+                const response = await api.getPostings(user.token, staffType);
                 const items = response.items || [];
                 setPostingsCache(items);
                 return items;
