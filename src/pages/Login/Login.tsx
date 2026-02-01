@@ -34,11 +34,11 @@ export function Login() {
             navigate('/dashboard');
         } catch (err) {
             console.error('Login error:', err);
-            setError(
-                err instanceof Error
-                    ? err.message
-                    : 'Login failed. Please check your credentials.'
-            );
+            const message = err instanceof Error
+                ? err.message
+                : 'Login failed. Please check your credentials.';
+            setError(message);
+            alert(`⚠️ Login Failed: ${message}`);
         } finally {
             setIsLoading(false);
         }
