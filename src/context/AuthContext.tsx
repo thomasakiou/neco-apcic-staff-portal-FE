@@ -55,6 +55,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             if (user?.token) {
                 try {
                     const profileData = await api.getProfile(user.token);
+                    refreshData();
                     setProfile(profileData);
 
                     // Pre-fetch data in background to speed up UI
@@ -76,21 +77,17 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }, [user?.token]);
 
     const login = async (staffNumber: string, password: string) => {
-        setIsLoading(true);
-        try {
-            const response = await api.login(staffNumber, password);
-            const newUser = { token: response.access_token, fileno: staffNumber };
+        const response = await api.login(staffNumber, password);
+        const newUser = { token: response.access_token, fileno: staffNumber };
 
-            localStorage.setItem(TOKEN_KEY, response.access_token);
-            localStorage.setItem(FILENO_KEY, staffNumber);
-            setUser(newUser);
+        localStorage.setItem(TOKEN_KEY, response.access_token);
+        localStorage.setItem(FILENO_KEY, staffNumber);
+        setUser(newUser);
 
-            // Fetch profile after login
-            const profileData = await api.getProfile(response.access_token);
-            setProfile(profileData);
-        } finally {
-            setIsLoading(false);
-        }
+        // Fetch profile after login
+        const profileData = await api.getProfile(response.access_token);
+        refreshData();
+        setProfile(profileData);
     };
 
     const logout = () => {
@@ -111,6 +108,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const refreshProfile = async () => {
         if (!user?.token) return;
         const profileData = await api.getProfile(user.token);
+        refreshData();
         setProfile(profileData);
     };
 
@@ -124,6 +122,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         setApcCache(undefined);
         setPostingsCache(undefined);
         setAssignmentsCache(undefined);
+        apcPromise.current = null;
+        postingsPromise.current = null;
+        assignmentsPromise.current = null;
     };
 
     const getAPC = async (): Promise<APCData | null> => {

@@ -34,11 +34,7 @@ export function Login() {
             navigate('/dashboard');
         } catch (err) {
             console.error('Login error:', err);
-            const message = err instanceof Error
-                ? err.message
-                : 'Login failed. Please check your credentials.';
-            setError(message);
-            alert(`⚠️ Login Failed: ${message}`);
+            setError('Invalid Credentials! Please enter correct details');
         } finally {
             setIsLoading(false);
         }

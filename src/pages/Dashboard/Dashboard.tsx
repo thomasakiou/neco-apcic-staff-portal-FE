@@ -42,6 +42,7 @@ export function Dashboard() {
 
     useEffect(() => {
         const loadStats = async () => {
+            if (!profile) return;
             try {
                 const [postings, apc, assignments] = await Promise.all([
                     getPostings().catch(() => []),
