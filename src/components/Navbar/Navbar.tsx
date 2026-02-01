@@ -5,7 +5,7 @@ import styles from './Navbar.module.css';
 
 export function Navbar() {
     const { theme, toggleTheme } = useTheme();
-    const { logout, profile } = useAuth();
+    const { logout } = useAuth();
     const location = useLocation();
 
     const navItems = [
@@ -51,7 +51,6 @@ export function Navbar() {
 
                     {/* User Menu */}
                     <div className={styles.userMenu}>
-                        <span className={styles.userName}>{profile?.full_name?.split(' ').slice(0, 2).join(' ')}</span>
                         <button onClick={logout} className={styles.logoutButton}>
                             Logout
                         </button>

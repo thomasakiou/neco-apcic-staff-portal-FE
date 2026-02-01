@@ -25,11 +25,14 @@ const FALLBACK_ASSIGNMENT_NAMES: Record<string, string> = {
     'stock-tk': 'Stock Taking',
 };
 
-const getFirstName = (fullName: string | undefined) => {
+const getWelcomeName = (fullName: string | undefined) => {
     if (!fullName) return '';
     const titleRegex = /^(mr|mrs|ms|miss|dr|prof|engr|chief|arc|pharm|barr|alh|alhaja|pst|rev|bishop)\.?\s+/i;
+    const match = fullName.match(titleRegex);
+    const title = match ? match[0].trim() + ' ' : '';
     const nameWithoutTitle = fullName.replace(titleRegex, '');
-    return nameWithoutTitle.split(' ')[0];
+    const firstName = nameWithoutTitle.split(' ')[0];
+    return `${title}${firstName}`.trim();
 };
 
 export function Dashboard() {
@@ -134,7 +137,7 @@ export function Dashboard() {
             <section className={styles.welcomeSection}>
                 <div className={styles.welcomeContent}>
                     <h1 className={styles.welcomeTitle}>
-                        Welcome back, <span className={styles.name}>{getFirstName(profile.full_name)}</span>! 👋
+                        Welcome back, <span className={styles.name}>{getWelcomeName(profile.full_name)}</span>! 👋
                     </h1>
                     <p className={styles.welcomeSubtitle}>
                         Here's an overview of your NECO staff profile

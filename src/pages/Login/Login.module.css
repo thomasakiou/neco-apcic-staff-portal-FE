@@ -85,6 +85,7 @@
     color: var(--color-primary);
     margin: 0;
     line-height: var(--line-height-tight);
+    white-space: nowrap;
 }
 
 @media (max-width: 480px) {
@@ -107,7 +108,7 @@
     }
 
     .title {
-        font-size: var(--font-size-2xl);
+        font-size: 1.0rem;
         font-weight: 800;
         /* Make it bolder */
         color: var(--color-primary);
@@ -116,10 +117,11 @@
         align-self: end;
         justify-self: center;
         /* Center text relative to subtitle */
+        white-space: nowrap;
     }
 
     .subtitle {
-        font-size: var(--font-size-sm);
+        font-size: 0.9rem;
         grid-column: 2;
         margin: 0;
         align-self: start;
@@ -130,7 +132,8 @@
 }
 
 .subtitle {
-    font-size: var(--font-size-md);
+    font-size: 1.5rem;
+    font-weight: var(--font-weight-medium);
     color: var(--text-secondary);
     margin: var(--space-xs) 0 0;
 }

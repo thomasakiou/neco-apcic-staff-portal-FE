@@ -54,17 +54,18 @@ export function Login() {
                         alt="NECO Logo"
                         className={styles.logo}
                     />
-                    <h1 className={styles.title}>APCIC Staff Portal</h1>
-                    <p className={styles.subtitle}>
+                    <h1 className={styles.title}>NATIONAL EXAMINATIONS COUNCIL (NECO)</h1>
+                    <h2 className={styles.subtitle}>APCIC Staff Portal</h2>
+                    {/* <p className={styles.subtitle}>
                         National Examinations Council
-                    </p>
+                    </p> */}
                 </div>
 
                 <form onSubmit={handleSubmit} className={styles.form}>
                     <div className={styles.formCard}>
-                        <h2 className={styles.formTitle}>Welcome Back</h2>
+                        <h2 className={styles.formTitle}>Welcome</h2>
                         <p className={styles.formSubtitle}>
-                            Sign in with your credentials to continue
+                            Sign in with your credentials to access your APC portal
                         </p>
 
                         {error && (
@@ -78,7 +79,7 @@ export function Login() {
                             <Input
                                 label="File Number"
                                 type="text"
-                                placeholder="Enter your staff file number"
+                                placeholder="Enter your staff file number (With p, e.g., 1234)"
                                 value={staffNumber}
                                 onChange={(e) => setStaffNumber(e.target.value)}
                                 autoComplete="username"
@@ -108,7 +109,7 @@ export function Login() {
                 </form>
 
                 <p className={styles.footer}>
-                    © {new Date().getFullYear()} National Examinations Council
+                    © {new Date().getFullYear()} National Examinations Council (NECO)
                 </p>
             </div>
         </div>
