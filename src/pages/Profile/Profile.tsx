@@ -94,7 +94,7 @@ export function Profile() {
                 </div>
             )}
 
-            {/* Contact Information - Editable */}
+            {/* Contact Information - Editable - COMMENTED OUT
             <section className={styles.section}>
                 <Card>
                     <CardHeader>
@@ -152,6 +152,7 @@ export function Profile() {
                     </CardContent>
                 </Card>
             </section>
+            */}
 
             {/* Roles */}
             {roles.length > 0 && (
