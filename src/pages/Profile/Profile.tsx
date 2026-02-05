@@ -1,49 +1,14 @@
-import { useState, FormEvent } from 'react';
 import { useAuth } from '../../context/AuthContext';
 import { Card, CardHeader, CardTitle, CardContent } from '../../components/Card';
-import { Input } from '../../components/Input';
-import { Button } from '../../components/Button';
 import { Loader } from '../../components/Loader';
 import styles from './Profile.module.css';
 
 export function Profile() {
-    const { profile, updateContact, refreshProfile } = useAuth();
-    const [isEditing, setIsEditing] = useState(false);
-    const [phone, setPhone] = useState(profile?.phone || '');
-    const [email, setEmail] = useState(profile?.email || '');
-    const [isSaving, setIsSaving] = useState(false);
-    const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
+    const { profile } = useAuth();
 
     if (!profile) {
         return <Loader fullScreen text="Loading profile..." />;
     }
-
-    const handleSubmit = async (e: FormEvent) => {
-        e.preventDefault();
-        setIsSaving(true);
-        setMessage(null);
-
-        try {
-            await updateContact(phone, email);
-            setMessage({ type: 'success', text: 'Contact information updated successfully!' });
-            setIsEditing(false);
-            await refreshProfile();
-        } catch (error) {
-            setMessage({
-                type: 'error',
-                text: error instanceof Error ? error.message : 'Failed to update contact information',
-            });
-        } finally {
-            setIsSaving(false);
-        }
-    };
-
-    const handleCancel = () => {
-        setPhone(profile.phone || '');
-        setEmail(profile.email || '');
-        setIsEditing(false);
-        setMessage(null);
-    };
 
     const formatDate = (dateStr: string | null | undefined) => {
         if (!dateStr) return 'N/A';
@@ -87,72 +52,6 @@ export function Profile() {
                 <h1 className={styles.title}>My Profile</h1>
                 <p className={styles.subtitle}>View your staff data and update contact information</p>
             </header>
-
-            {message && (
-                <div className={`${styles.alert} ${styles[message.type]}`} role="alert">
-                    {message.type === 'success' ? '✅' : '⚠️'} {message.text}
-                </div>
-            )}
-
-            {/* Contact Information - Editable - COMMENTED OUT
-            <section className={styles.section}>
-                <Card>
-                    <CardHeader>
-                        <CardTitle>Contact Information</CardTitle>
-                        {!isEditing && (
-                            <Button variant="outline" size="sm" onClick={() => setIsEditing(true)}>
-                                Edit
-                            </Button>
-                        )}
-                    </CardHeader>
-                    <CardContent>
-                        {isEditing ? (
-                            <form onSubmit={handleSubmit} className={styles.editForm}>
-                                <Input
-                                    label="Phone Number"
-                                    type="tel"
-                                    placeholder="Enter your phone number"
-                                    value={phone}
-                                    onChange={(e) => setPhone(e.target.value)}
-                                />
-                                <Input
-                                    label="Email Address"
-                                    type="email"
-                                    placeholder="Enter your email address"
-                                    value={email}
-                                    onChange={(e) => setEmail(e.target.value)}
-                                />
-                                <div className={styles.editActions}>
-                                    <Button type="button" variant="ghost" onClick={handleCancel} disabled={isSaving}>
-                                        Cancel
-                                    </Button>
-                                    <Button type="submit" isLoading={isSaving}>
-                                        Save Changes
-                                    </Button>
-                                </div>
-                            </form>
-                        ) : (
-                            <div className={styles.contactGrid}>
-                                <div className={styles.contactItem}>
-                                    <span className={styles.contactIcon}>📱</span>
-                                    <div>
-                                        <span className={styles.contactLabel}>Phone</span>
-                                        <span className={styles.contactValue}>{profile.phone || 'Not set'}</span>
-                                    </div>
-                                </div>
-                                <div className={styles.contactItem}>
-                                    <span className={styles.contactIcon}>📧</span>
-                                    <div>
-                                        <span className={styles.contactLabel}>Email</span>
-                                        <span className={styles.contactValue}>{profile.email || 'Not set'}</span>
-                                    </div>
-                                </div>
-                            </div>
-                        )}
-                    </CardContent>
-                </Card>
-            </section>
-            */}
 
             {/* Roles */}
             {roles.length > 0 && (
