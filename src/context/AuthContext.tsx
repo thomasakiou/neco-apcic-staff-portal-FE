@@ -176,7 +176,33 @@ export function AuthProvider({ children }: { children: ReactNode }) {
                     staffType = 'typesetting';
                 }
                 const response = await api.getPostings(user.token, staffType);
-                const items = response.items || [];
+                // Handle both { items: [...] } and direct array response formats
+                let items: PostingData[];
+                if (Array.isArray(response)) {
+                    items = response as unknown as PostingData[];
+                } else {
+                    items = response.items || [];
+                }
+
+                // If staff-type-specific endpoint returned empty and user is not regular,
+                // also try the regular posting endpoint as fallback
+                if (items.length === 0 && staffType !== 'regular') {
+                    try {
+                        const fallbackResponse = await api.getPostings(user.token, 'regular');
+                        let fallbackItems: PostingData[];
+                        if (Array.isArray(fallbackResponse)) {
+                            fallbackItems = fallbackResponse as unknown as PostingData[];
+                        } else {
+                            fallbackItems = fallbackResponse.items || [];
+                        }
+                        if (fallbackItems.length > 0) {
+                            items = fallbackItems;
+                        }
+                    } catch {
+                        // Silently fail - if fallback also fails, use original empty result
+                    }
+                }
+
                 setPostingsCache(items);
                 return items;
             } catch (e) {

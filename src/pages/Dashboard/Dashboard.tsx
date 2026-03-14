@@ -137,7 +137,7 @@ export function Dashboard() {
             <section className={styles.welcomeSection}>
                 <div className={styles.welcomeContent}>
                     <h1 className={styles.welcomeTitle}>
-                        Welcome back, <span className={styles.name}>{getWelcomeName(profile.full_name)}</span>! 👋
+                        Welcome, <span className={styles.name}>{getWelcomeName(profile.full_name)}</span>! 👋
                     </h1>
                     <p className={styles.welcomeSubtitle}>
                         Here's an overview of your NECO staff profile
