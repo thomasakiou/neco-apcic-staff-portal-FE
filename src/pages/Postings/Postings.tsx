@@ -158,11 +158,11 @@ export function Postings() {
                         <div className={styles.statsRow}>
                             <div className={styles.statItem}>
                                 <span className={styles.statValue}>{totalAssignments}</span>
-                                <span className={styles.statLabel}>Total Assignments</span>
+                                <span className={styles.statLabel}>Total Assignments Left</span>
                             </div>
                             <div className={styles.statItem}>
                                 <span className={styles.statValue}>{totalPostedFor}</span>
-                                <span className={styles.statLabel}>Posted For</span>
+                                <span className={styles.statLabel}>Total Assignments Posted</span>
                             </div>
                         </div>
                     </CardContent>
