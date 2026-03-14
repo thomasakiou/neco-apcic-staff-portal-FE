@@ -203,10 +203,10 @@ export function Postings() {
                                                 <span className={styles.detailLabel}>CONRAISS</span>
                                                 <span className={styles.detailValue}>{posting.conraiss || 'N/A'}</span>
                                             </div>
-                                            <div className={styles.detailItem}>
+                                            {/* <div className={styles.detailItem}>
                                                 <span className={styles.detailLabel}>Count</span>
                                                 <span className={styles.detailValue}>{posting.count ?? 0}</span>
-                                            </div>
+                                            </div> */}
                                         </div>
                                     </CardContent>
                                 </Card>
@@ -238,7 +238,7 @@ export function Postings() {
                                                     {/* Venue (Split by index) */}
                                                     {posting.assignment_venue && posting.assignment_venue.length > index && (
                                                         <div className={styles.postingField}>
-                                                            <span className={styles.fieldLabel}>Venue</span>
+                                                            <span className={styles.fieldLabel}>Posting</span>
                                                             <span className={`${styles.tag} ${styles.venueTag}`}>
                                                                 📍 {String(posting.assignment_venue[index])}
                                                             </span>
