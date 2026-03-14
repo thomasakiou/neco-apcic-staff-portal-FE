@@ -1,10 +1,18 @@
+import { useState } from 'react';
 import { useAuth } from '../../context/AuthContext';
 import { Card, CardHeader, CardTitle, CardContent } from '../../components/Card';
+import { Input } from '../../components/Input/Input';
+import { Button } from '../../components/Button/Button';
 import { Loader } from '../../components/Loader';
 import styles from './Profile.module.css';
 
 export function Profile() {
-    const { profile } = useAuth();
+    const { profile, updateContact } = useAuth();
+    const [isEditing, setIsEditing] = useState(false);
+    const [phone, setPhone] = useState('');
+    const [email, setEmail] = useState('');
+    const [isSaving, setIsSaving] = useState(false);
+    const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
 
     if (!profile) {
         return <Loader fullScreen text="Loading profile..." />;
@@ -20,6 +28,32 @@ export function Profile() {
             });
         } catch {
             return dateStr;
+        }
+    };
+
+    const handleEdit = () => {
+        setPhone(profile.phone || '');
+        setEmail(profile.email || '');
+        setIsEditing(true);
+        setMessage(null);
+    };
+
+    const handleCancel = () => {
+        setIsEditing(false);
+        setMessage(null);
+    };
+
+    const handleSave = async () => {
+        setIsSaving(true);
+        setMessage(null);
+        try {
+            await updateContact(phone, email);
+            setMessage({ type: 'success', text: 'Contact information updated successfully!' });
+            setIsEditing(false);
+        } catch (err) {
+            setMessage({ type: 'error', text: err instanceof Error ? err.message : 'Failed to update contact' });
+        } finally {
+            setIsSaving(false);
         }
     };
 
@@ -53,6 +87,13 @@ export function Profile() {
                 <p className={styles.subtitle}>View your staff data and update contact information</p>
             </header>
 
+            {/* Status Message */}
+            {message && (
+                <div className={`${styles.alert} ${styles[message.type]}`} role="alert">
+                    {message.type === 'success' ? '✅' : '⚠️'} {message.text}
+                </div>
+            )}
+
             {/* Roles */}
             {roles.length > 0 && (
                 <section className={styles.section}>
@@ -72,6 +113,67 @@ export function Profile() {
                     </Card>
                 </section>
             )}
+
+            {/* Contact Information (Editable) */}
+            <section className={styles.section}>
+                <Card>
+                    <CardHeader>
+                        <CardTitle>Contact Information</CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                        {isEditing ? (
+                            <div className={styles.editForm}>
+                                <Input
+                                    label="Phone Number"
+                                    type="tel"
+                                    value={phone}
+                                    onChange={(e) => setPhone(e.target.value)}
+                                    placeholder="Enter phone number"
+                                />
+                                <Input
+                                    label="Email Address"
+                                    type="email"
+                                    value={email}
+                                    onChange={(e) => setEmail(e.target.value)}
+                                    placeholder="Enter email address"
+                                />
+                                <div className={styles.editActions}>
+                                    <Button variant="outline" onClick={handleCancel} disabled={isSaving}>
+                                        Cancel
+                                    </Button>
+                                    <Button onClick={handleSave} isLoading={isSaving}>
+                                        Save Changes
+                                    </Button>
+                                </div>
+                            </div>
+                        ) : (
+                            <>
+                                <div className={styles.contactGrid}>
+                                    <div className={styles.contactItem}>
+                                        <span className={styles.contactIcon}>📞</span>
+                                        <div>
+                                            <span className={styles.contactLabel}>Phone</span>
+                                            <span className={styles.contactValue}>{profile.phone || 'Not set'}</span>
+                                        </div>
+                                    </div>
+                                    <div className={styles.contactItem}>
+                                        <span className={styles.contactIcon}>📧</span>
+                                        <div>
+                                            <span className={styles.contactLabel}>Email</span>
+                                            <span className={styles.contactValue}>{profile.email || 'Not set'}</span>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div className={styles.editActions}>
+                                    <Button variant="outline" onClick={handleEdit}>
+                                        ✏️ Edit Contact
+                                    </Button>
+                                </div>
+                            </>
+                        )}
+                    </CardContent>
+                </Card>
+            </section>
 
             {/* Staff Details */}
             <section className={styles.section}>
