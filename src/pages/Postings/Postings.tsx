@@ -191,7 +191,7 @@ export function Postings() {
                                 <Card className={styles.summaryCard}>
                                     <CardHeader>
                                         <CardTitle>{posting.year || 'N/A'}</CardTitle>
-                                        <span className={styles.date}>{formatDate(posting.created_at)}</span>
+                                        {/* <span className={styles.date}>{formatDate(posting.created_at)}</span> */}
                                     </CardHeader>
                                     <CardContent>
                                         <div className={styles.detailsGrid}>
