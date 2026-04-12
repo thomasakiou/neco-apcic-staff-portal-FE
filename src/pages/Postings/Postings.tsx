@@ -74,18 +74,18 @@ export function Postings() {
         return <Loader fullScreen text="Loading postings..." />;
     }
 
-    const formatDate = (dateStr: string | null | undefined) => {
-        if (!dateStr) return '-';
-        try {
-            return new Date(dateStr).toLocaleDateString('en-NG', {
-                day: 'numeric',
-                month: 'short',
-                year: 'numeric',
-            });
-        } catch {
-            return dateStr;
-        }
-    };
+    // const formatDate = (dateStr: string | null | undefined) => {
+    //     if (!dateStr) return '-';
+    //     try {
+    //         return new Date(dateStr).toLocaleDateString('en-NG', {
+    //             day: 'numeric',
+    //             month: 'short',
+    //             year: 'numeric',
+    //         });
+    //     } catch {
+    //         return dateStr;
+    //     }
+    // };
 
     // Calculate total assignments across all postings (always use count)
     // const totalAssignments = postings.reduce((acc, p) => acc + (p.count || 0), 0);
@@ -136,7 +136,7 @@ export function Postings() {
     const totalAssignments = calculateActiveAssignments();
 
     // Calculate total posted_for across all postings
-    const totalPostedFor = postings.reduce((acc, p) => acc + (p.posted_for || 0), 0);
+    // const totalPostedFor = postings.reduce((acc, p) => acc + (p.posted_for || 0), 0);
 
     return (
         <div className={styles.container}>
