@@ -160,10 +160,10 @@ export function Postings() {
                                 <span className={styles.statValue}>{totalAssignments}</span>
                                 <span className={styles.statLabel}>Total Assignments Left</span>
                             </div>
-                            <div className={styles.statItem}>
+                            {/* <div className={styles.statItem}>
                                 <span className={styles.statValue}>{totalPostedFor}</span>
                                 <span className={styles.statLabel}>Total Assignments Posted</span>
-                            </div>
+                            </div> */}
                         </div>
                     </CardContent>
                 </Card>
