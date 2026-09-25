@@ -8,11 +8,11 @@ import { APCData, AssignmentData, APC_FIELD_KEYS } from '../../types';
 
 // Fallback mapping when API is not accessible (APCIC staff portal token doesn't have access to admin endpoints)
 const FALLBACK_ASSIGNMENT_NAMES: Record<string, string> = {
-    'tt': 'Token Test',
+    'tt': 'Trial Testing',
     'mar-accr': 'March Accreditation',
     'ncee': 'NCEE Examination',
     'gifted': 'Gifted Examination',
-    'becep': 'BECEP Examination',
+    'becep': 'BECE Examination',
     'bece-mrkp': 'BECE Marking',
     'ssce-int': 'SSCE Internal Examination',
     'swapping': 'Swapping',
@@ -20,7 +20,7 @@ const FALLBACK_ASSIGNMENT_NAMES: Record<string, string> = {
     'oct-accr': 'October Accreditation',
     'ssce-ext': 'SSCE External Examination',
     'ssce-ext-mrk': 'SSCE External Marking',
-    'pur-samp': 'Purchasing/Sampling',
+    'pur-samp': 'Purposive Sampling',
     'int-audit': 'Internal Audit',
     'stock-tk': 'Stock Taking',
 };
@@ -185,80 +185,106 @@ export function Postings() {
                     </Card>
                 ) : (
                     <div className={styles.postingsList}>
-                        {postings.map((posting) => (
-                            <div key={posting.id} className={styles.postingGroup}>
-                                {/* Summary Card (Top Card) */}
-                                <Card className={styles.summaryCard}>
-                                    <CardHeader>
-                                        <CardTitle>{posting.year || 'N/A'}</CardTitle>
-                                        {/* <span className={styles.date}>{formatDate(posting.created_at)}</span> */}
-                                    </CardHeader>
-                                    <CardContent>
-                                        <div className={styles.detailsGrid}>
-                                            <div className={styles.detailItem}>
-                                                <span className={styles.detailLabel}>Station</span>
-                                                <span className={styles.detailValue}>{posting.station || 'N/A'}</span>
+                        {(() => {
+                            const grouped = new Map<string, PostingData[]>();
+                            [...postings].sort((a, b) => {
+                                const yearA = parseInt(String(a.year || '0'));
+                                const yearB = parseInt(String(b.year || '0'));
+                                return yearB - yearA;
+                            }).forEach(p => {
+                                const year = String(p.year || 'N/A');
+                                if (!grouped.has(year)) grouped.set(year, []);
+                                grouped.get(year)!.push(p);
+                            });
+
+                            return Array.from(grouped.entries()).map(([year, yearPostings]) => {
+                                const station = yearPostings[0]?.station || 'N/A';
+                                const conraiss = yearPostings[0]?.conraiss || 'N/A';
+
+                                const allAssignments: { assignment: string; mandate?: string; venue?: string; description?: string; postingId?: string }[] = [];
+                                yearPostings.forEach(posting => {
+                                    posting.assignments?.forEach((assignment, index) => {
+                                        allAssignments.push({
+                                            assignment,
+                                            mandate: posting.mandates && posting.mandates.length > index ? String(posting.mandates[index]) : undefined,
+                                            venue: posting.assignment_venue && posting.assignment_venue.length > index ? String(posting.assignment_venue[index]) : undefined,
+                                            description: posting.description || undefined,
+                                            postingId: posting.id,
+                                        });
+                                    });
+                                });
+
+                                allAssignments.sort((a, b) => {
+                                    const getRank = (name: string) => {
+                                        const normalized = name.toLowerCase().trim();
+                                        return APC_FIELD_KEYS.findIndex(key => {
+                                            const code = key.replace(/_/g, '-');
+                                            const fullName = getAssignmentName(code).toLowerCase().trim();
+                                            return key.toLowerCase().trim() === normalized || code === normalized || fullName === normalized;
+                                        });
+                                    };
+                                    return getRank(b.assignment) - getRank(a.assignment);
+                                });
+
+                                return (
+                                    <Card key={year} className={styles.summaryCard}>
+                                        <CardHeader>
+                                            <CardTitle>{year}</CardTitle>
+                                        </CardHeader>
+                                        <CardContent>
+                                            <div className={styles.detailsGrid}>
+                                                <div className={styles.detailItem}>
+                                                    <span className={styles.detailLabel}>Station</span>
+                                                    <span className={styles.detailValue}>{station}</span>
+                                                </div>
+                                                <div className={styles.detailItem}>
+                                                    <span className={styles.detailLabel}>CONRAISS</span>
+                                                    <span className={styles.detailValue}>{conraiss}</span>
+                                                </div>
                                             </div>
-                                            <div className={styles.detailItem}>
-                                                <span className={styles.detailLabel}>CONRAISS</span>
-                                                <span className={styles.detailValue}>{posting.conraiss || 'N/A'}</span>
-                                            </div>
-                                            {/* <div className={styles.detailItem}>
-                                                <span className={styles.detailLabel}>Count</span>
-                                                <span className={styles.detailValue}>{posting.count ?? 0}</span>
-                                            </div> */}
-                                        </div>
-                                    </CardContent>
-                                </Card>
 
-                                {/* Individual Assignment Cards */}
-                                {posting.assignments && posting.assignments.length > 0 && (
-                                    <div className={styles.assignmentsGrid}>
-                                        {posting.assignments.map((assignment, index) => (
-                                            <Card key={`${posting.id}-${index}`} className={styles.assignmentCard}>
-                                                <CardContent>
-                                                    {/* Assignment Name */}
-                                                    <div className={styles.postingField}>
-                                                        <span className={styles.fieldLabel}>Assignment</span>
-                                                        <span className={`${styles.tag} ${styles.assignmentTag}`}>
-                                                            {assignment}
-                                                        </span>
-                                                    </div>
+                                            {allAssignments.length > 0 && (
+                                                <div className={styles.assignmentsGrid}>
+                                                    {allAssignments.map((item, index) => (
+                                                        <div key={`${item.postingId}-${index}`} className={styles.assignmentRow}>
+                                                            <div className={styles.postingField}>
+                                                                <span className={styles.fieldLabel}>Assignment</span>
+                                                                <span className={`${styles.tag} ${styles.assignmentTag}`}>
+                                                                    {item.assignment}
+                                                                </span>
+                                                            </div>
 
-                                                    {/* Mandate (Split by index) */}
-                                                    {posting.mandates && posting.mandates.length > index && (
-                                                        <div className={styles.postingField}>
-                                                            <span className={styles.fieldLabel}>Mandate</span>
-                                                            <span className={styles.tag}>
-                                                                {String(posting.mandates[index])}
-                                                            </span>
+                                                            {item.mandate && (
+                                                                <div className={styles.postingField}>
+                                                                    <span className={styles.fieldLabel}>Mandate</span>
+                                                                    <span className={styles.tag}>{item.mandate}</span>
+                                                                </div>
+                                                            )}
+
+                                                            {item.venue && (
+                                                                <div className={styles.postingField}>
+                                                                    <span className={styles.fieldLabel}>Posting</span>
+                                                                    <span className={`${styles.tag} ${styles.venueTag}`}>
+                                                                        📍 {item.venue}
+                                                                    </span>
+                                                                </div>
+                                                            )}
+
+                                                            {item.description && (
+                                                                <div className={styles.postingField}>
+                                                                    <span className={styles.fieldLabel}>Description</span>
+                                                                    <p className={styles.descriptionText}>{item.description}</p>
+                                                                </div>
+                                                            )}
                                                         </div>
-                                                    )}
-
-                                                    {/* Venue (Split by index) */}
-                                                    {posting.assignment_venue && posting.assignment_venue.length > index && (
-                                                        <div className={styles.postingField}>
-                                                            <span className={styles.fieldLabel}>Posting</span>
-                                                            <span className={`${styles.tag} ${styles.venueTag}`}>
-                                                                📍 {String(posting.assignment_venue[index])}
-                                                            </span>
-                                                        </div>
-                                                    )}
-
-                                                    {/* Description */}
-                                                    {posting.description && (
-                                                        <div className={styles.postingField}>
-                                                            <span className={styles.fieldLabel}>Description</span>
-                                                            <p className={styles.descriptionText}>{posting.description}</p>
-                                                        </div>
-                                                    )}
-                                                </CardContent>
-                                            </Card>
-                                        ))}
-                                    </div>
-                                )}
-                            </div>
-                        ))}
+                                                    ))}
+                                                </div>
+                                            )}
+                                        </CardContent>
+                                    </Card>
+                                );
+                            });
+                        })()}
                     </div>
                 )}
             </section>
