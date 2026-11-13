@@ -3,27 +3,7 @@ import { Link } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import { Card, CardContent } from '../../components/Card';
 import { Loader } from '../../components/Loader';
-import { APC_FIELD_KEYS } from '../../types';
 import styles from './Dashboard.module.css';
-
-// Fallback mapping (Sync with APC.tsx)
-const FALLBACK_ASSIGNMENT_NAMES: Record<string, string> = {
-    'tt': 'Token Test',
-    'mar-accr': 'March Accreditation',
-    'ncee': 'NCEE Examination',
-    'gifted': 'Gifted Examination',
-    'becep': 'BECEP Examination',
-    'bece-mrkp': 'BECE Marking',
-    'ssce-int': 'SSCE Internal Examination',
-    'swapping': 'Swapping',
-    'ssce-int-mrk': 'SSCE Internal Marking',
-    'oct-accr': 'October Accreditation',
-    'ssce-ext': 'SSCE External Examination',
-    'ssce-ext-mrk': 'SSCE External Marking',
-    'pur-samp': 'Purchasing/Sampling',
-    'int-audit': 'Internal Audit',
-    'stock-tk': 'Stock Taking',
-};
 
 const getWelcomeName = (fullName: string | undefined) => {
     if (!fullName) return '';
@@ -36,7 +16,7 @@ const getWelcomeName = (fullName: string | undefined) => {
 };
 
 export function Dashboard() {
-    const { profile, getPostings, getAPC, getAssignments, selectedYear, setSelectedYear, availableYears } = useAuth();
+    const { profile, getPostings, getAPC, selectedYear, setSelectedYear, availableYears } = useAuth();
     const [stats, setStats] = useState({
         postingsCount: 0,
         activeAssignments: 0,
@@ -48,10 +28,9 @@ export function Dashboard() {
             if (!profile) return;
             setStats(prev => ({ ...prev, loading: true }));
             try {
-                const [postings, apc, assignments] = await Promise.all([
+                const [postings, apc] = await Promise.all([
                     getPostings(selectedYear).catch(() => []),
                     getAPC(selectedYear).catch(() => null),
-                    getAssignments().catch(() => []),
                 ]);
 
                 // Filter postings for selected year
@@ -60,37 +39,27 @@ export function Dashboard() {
                 // 1. Calculate Total Postings (Assignments) for selected year
                 const totalPostings = yearPostings.reduce((acc: any, p: any) => acc + (p.assignments?.length || 0), 0);
 
-                // 2. Build Posted Names Set
-                const postedNames = new Set<string>();
-                yearPostings.forEach(p => {
-                    p.assignments?.forEach(a => postedNames.add(a.toLowerCase().trim()));
-                });
-
-                // 3. Build Code-to-Name Map
-                const codeToNameMap: Record<string, string> = { ...FALLBACK_ASSIGNMENT_NAMES };
-                assignments.forEach((a) => {
-                    codeToNameMap[a.code.toLowerCase()] = a.name;
-                });
-
-                const getAssignmentName = (code: string) => codeToNameMap[code.toLowerCase().trim()] || code;
-
-                // 4. Calculate Pending Active Assignments
+                // 2. Calculate Pending Active Assignments based on CONRAISS rules:
+                // - all category HOD = 4 assignments
+                // - conraiss 14 and 13 = 3 assignments
+                // - conraiss 11 and 12 = 2 assignments
+                // - conraiss 9 to end = 1 assignment
                 let activeCount = 0;
                 if (apc) {
-                    APC_FIELD_KEYS.forEach((field) => {
-                        if (apc[field as keyof typeof apc]) {
-                            const code = field.replace(/_/g, '-');
-                            const name = getAssignmentName(code);
-
-                            const isPosted = postedNames.has(name.toLowerCase().trim())
-                                || postedNames.has(code.toLowerCase().trim())
-                                || postedNames.has(field.toLowerCase().trim());
-
-                            if (!isPosted) {
-                                activeCount++;
-                            }
-                        }
-                    });
+                    const getExpectedTotal = (): number => {
+                        if (profile.is_hod) return 4;
+                        const conrStr = profile.conr || apc.conraiss || '';
+                        const match = conrStr.match(/(\d+)/);
+                        const level = match ? parseInt(match[1], 10) : 0;
+                        if (level >= 13) return 3;
+                        if (level >= 11) return 2;
+                        return 1;
+                    };
+                    const expectedTotal = getExpectedTotal();
+                    const yearPostingsCount = postings
+                        .filter((p) => String(p.year) === String(selectedYear))
+                        .reduce((sum, p) => sum + (p.assignments?.length || 0), 0);
+                    activeCount = Math.max(0, expectedTotal - yearPostingsCount);
                 }
 
                 setStats({
@@ -105,7 +74,7 @@ export function Dashboard() {
         };
 
         loadStats();
-    }, [getPostings, getAPC, getAssignments, profile, selectedYear]);
+    }, [getPostings, getAPC, profile, selectedYear]);
 
     if (!profile) {
         return <Loader fullScreen text="Loading your dashboard..." />;

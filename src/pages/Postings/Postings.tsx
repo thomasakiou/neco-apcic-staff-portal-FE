@@ -102,36 +102,29 @@ export function Postings() {
         return codeToNameMap[normalizedCode] || code;
     };
 
-    // Calculate active assignments count (assignments in APC that are not yet posted)
+    // Expected number of assignments based on CONRAISS rules:
+    // - all category HOD = 4 assignments
+    // - conraiss 14 and 13 = 3 assignments
+    // - conraiss 11 and 12 = 2 assignments
+    // - conraiss 9 to end = 1 assignment
+    const getExpectedTotalAssignments = (): number => {
+        if (profile?.is_hod) return 4;
+        const conrStr = profile?.conr || apc?.conraiss || '';
+        const match = conrStr.match(/(\d+)/);
+        const level = match ? parseInt(match[1], 10) : 0;
+        if (level >= 13) return 3;
+        if (level >= 11) return 2;
+        return 1;
+    };
+
+    // Calculate active assignments count (assignments left based on grade quota minus postings)
     const calculateActiveAssignments = () => {
         if (!apc) return 0;
-
-        // Extract all assignment names from posting history for selected or active year
         const targetYear = selectedYear === 'All' ? (postings[0]?.year || '2026') : selectedYear;
-        const postedAssignmentNames = new Set<string>();
-        postings.forEach(p => {
-            if (String(p.year) === String(targetYear)) {
-                p.assignments?.forEach(a => postedAssignmentNames.add(a.toLowerCase().trim()));
-            }
-        });
-
-        // Count active APC assignments not in posted list
-        return APC_FIELD_KEYS.reduce((count, key) => {
-            const value = apc[key as keyof APCData];
-            if (!value) return count; // Skip if not active in APC
-
-            // Check if posted
-            const assignmentCode = key.replace(/_/g, '-');
-            const name = getAssignmentName(assignmentCode);
-
-            const nameMatch = postedAssignmentNames.has(name.toLowerCase().trim());
-            const codeMatch = postedAssignmentNames.has(assignmentCode.toLowerCase().trim());
-            const keyMatch = postedAssignmentNames.has(key.toLowerCase().trim());
-
-            const isPosted = nameMatch || codeMatch || keyMatch;
-
-            return isPosted ? count : count + 1;
-        }, 0);
+        const yearPostingsCount = postings
+            .filter(p => String(p.year) === String(targetYear))
+            .reduce((sum, p) => sum + (p.assignments?.length || 0), 0);
+        return Math.max(0, getExpectedTotalAssignments() - yearPostingsCount);
     };
 
     const totalAssignments = calculateActiveAssignments();
