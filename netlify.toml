@@ -2,6 +2,9 @@
   command = "npm run build"
   publish = "dist"
 
+[build.environment]
+  NODE_VERSION = "20"
+
 # Proxy API requests to the real backend
 # This mimics the vite proxy behavior in production
 [[redirects]]
