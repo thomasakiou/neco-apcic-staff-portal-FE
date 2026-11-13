@@ -16,16 +16,20 @@ interface AuthContextType {
     logout: () => void;
     refreshProfile: () => Promise<void>;
     updateContact: (phone: string, email: string) => Promise<void>;
-    getAPC: () => Promise<APCData | null>;
-    getPostings: () => Promise<PostingData[]>;
+    getAPC: (targetYear?: string) => Promise<APCData | null>;
+    getPostings: (targetYear?: string) => Promise<PostingData[]>;
     getAssignments: () => Promise<AssignmentData[]>;
     refreshData: () => void; // allow manual refresh
+    selectedYear: string;
+    setSelectedYear: (year: string) => void;
+    availableYears: string[];
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 const TOKEN_KEY = 'neco-staff-portal-token';
 const FILENO_KEY = 'neco-staff-portal-fileno';
+const YEAR_KEY = 'staffPortalFilterYear';
 
 export function AuthProvider({ children }: { children: ReactNode }) {
     const [user, setUser] = useState<User | null>(() => {
@@ -39,14 +43,25 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const [profile, setProfile] = useState<StaffProfile | null>(null);
     const [isLoading, setIsLoading] = useState(true);
 
-    // Data Caches (undefined = not fetched, null = fetched but empty/404)
-    const [apcCache, setApcCache] = useState<APCData | null | undefined>(undefined);
-    const [postingsCache, setPostingsCache] = useState<PostingData[] | undefined>(undefined);
+    const availableYears = ['2027', '2026'];
+    const defaultYear = new Date().getFullYear() >= 2027 ? '2027' : '2026';
+    const [selectedYear, setSelectedYearState] = useState<string>(() => {
+        return localStorage.getItem(YEAR_KEY) || defaultYear;
+    });
+
+    const setSelectedYear = (year: string) => {
+        setSelectedYearState(year);
+        localStorage.setItem(YEAR_KEY, year);
+    };
+
+    // Data Caches by year
+    const [apcCacheMap, setApcCacheMap] = useState<Record<string, APCData | null>>({});
+    const [postingsCacheMap, setPostingsCacheMap] = useState<Record<string, PostingData[]>>({});
     const [assignmentsCache, setAssignmentsCache] = useState<AssignmentData[] | undefined>(undefined);
 
     // In-flight promises to deduplicate simultaneous requests
-    const apcPromise = useRef<Promise<APCData | null> | null>(null);
-    const postingsPromise = useRef<Promise<PostingData[]> | null>(null);
+    const apcPromises = useRef<Record<string, Promise<APCData | null> | undefined>>({});
+    const postingsPromises = useRef<Record<string, Promise<PostingData[]> | undefined>>({});
     const assignmentsPromise = useRef<Promise<AssignmentData[]> | null>(null);
 
     // Load profile on mount if we have a token
@@ -97,11 +112,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         setProfile(null);
 
         // Clear caches
-        setApcCache(undefined);
-        setPostingsCache(undefined);
+        setApcCacheMap({});
+        setPostingsCacheMap({});
         setAssignmentsCache(undefined);
-        apcPromise.current = null;
-        postingsPromise.current = null;
+        apcPromises.current = {};
+        postingsPromises.current = {};
         assignmentsPromise.current = null;
     };
 
@@ -119,19 +134,20 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     };
 
     const refreshData = () => {
-        setApcCache(undefined);
-        setPostingsCache(undefined);
+        setApcCacheMap({});
+        setPostingsCacheMap({});
         setAssignmentsCache(undefined);
-        apcPromise.current = null;
-        postingsPromise.current = null;
+        apcPromises.current = {};
+        postingsPromises.current = {};
         assignmentsPromise.current = null;
     };
 
-    const getAPC = async (): Promise<APCData | null> => {
+    const getAPC = async (targetYear?: string): Promise<APCData | null> => {
         if (!user?.token) throw new Error('Not authenticated');
+        const year = targetYear || selectedYear;
 
-        if (apcCache !== undefined) return apcCache;
-        if (apcPromise.current) return apcPromise.current;
+        if (apcCacheMap[year] !== undefined) return apcCacheMap[year];
+        if (apcPromises.current[year]) return apcPromises.current[year];
 
         const promise = (async () => {
             try {
@@ -144,25 +160,25 @@ export function AuthProvider({ children }: { children: ReactNode }) {
                 } else if (profile?.is_typesetting) {
                     staffType = 'typesetting';
                 }
-                const data = await api.getAPC(user.token, staffType);
-                setApcCache(data);
+                const data = await api.getAPC(user.token, staffType, year);
+                setApcCacheMap(prev => ({ ...prev, [year]: data }));
                 return data;
             } catch (e) {
-                // If error, do not cache invalid state (unless 404 which returns null via api)
-                apcPromise.current = null;
+                delete apcPromises.current[year];
                 throw e;
             }
         })();
 
-        apcPromise.current = promise;
+        apcPromises.current[year] = promise;
         return promise;
     };
 
-    const getPostings = async (): Promise<PostingData[]> => {
+    const getPostings = async (targetYear?: string): Promise<PostingData[]> => {
         if (!user?.token) throw new Error('Not authenticated');
+        const year = targetYear || selectedYear;
 
-        if (postingsCache !== undefined) return postingsCache;
-        if (postingsPromise.current) return postingsPromise.current;
+        if (postingsCacheMap[year] !== undefined) return postingsCacheMap[year];
+        if (postingsPromises.current[year]) return postingsPromises.current[year];
 
         const promise = (async () => {
             try {
@@ -175,7 +191,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
                 } else if (profile?.is_typesetting) {
                     staffType = 'typesetting';
                 }
-                const response = await api.getPostings(user.token, staffType);
+                const response = await api.getPostings(user.token, staffType, year);
                 // Handle both { items: [...] } and direct array response formats
                 let items: PostingData[];
                 if (Array.isArray(response)) {
@@ -188,7 +204,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
                 // also try the regular posting endpoint as fallback
                 if (items.length === 0 && staffType !== 'regular') {
                     try {
-                        const fallbackResponse = await api.getPostings(user.token, 'regular');
+                        const fallbackResponse = await api.getPostings(user.token, 'regular', year);
                         let fallbackItems: PostingData[];
                         if (Array.isArray(fallbackResponse)) {
                             fallbackItems = fallbackResponse as unknown as PostingData[];
@@ -203,15 +219,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
                     }
                 }
 
-                setPostingsCache(items);
+                setPostingsCacheMap(prev => ({ ...prev, [year]: items }));
                 return items;
             } catch (e) {
-                postingsPromise.current = null;
+                delete postingsPromises.current[year];
                 throw e;
             }
         })();
 
-        postingsPromise.current = promise;
+        postingsPromises.current[year] = promise;
         return promise;
     };
 
@@ -251,6 +267,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
                 getPostings,
                 getAssignments,
                 refreshData,
+                selectedYear,
+                setSelectedYear,
+                availableYears,
             }}
         >
             {children}

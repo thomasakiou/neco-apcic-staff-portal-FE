@@ -5,7 +5,7 @@ import styles from './Navbar.module.css';
 
 export function Navbar() {
     const { theme, toggleTheme } = useTheme();
-    const { logout } = useAuth();
+    const { logout, selectedYear, setSelectedYear, availableYears } = useAuth();
     const location = useLocation();
 
     const navItems = [
@@ -40,6 +40,21 @@ export function Navbar() {
 
                 {/* Actions */}
                 <div className={styles.actions}>
+                    {/* Year Selector */}
+                    <div className={styles.yearSelector} title="Select Calendar Year">
+                        <span className={styles.yearIcon}>📅</span>
+                        <select
+                            value={selectedYear}
+                            onChange={(e) => setSelectedYear(e.target.value)}
+                            className={styles.yearSelect}
+                            aria-label="Select Year"
+                        >
+                            {availableYears.map((y) => (
+                                <option key={y} value={y}>{y}</option>
+                            ))}
+                        </select>
+                    </div>
+
                     {/* Theme Toggle */}
                     <button
                         onClick={toggleTheme}

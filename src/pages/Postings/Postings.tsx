@@ -26,7 +26,7 @@ const FALLBACK_ASSIGNMENT_NAMES: Record<string, string> = {
 };
 
 export function Postings() {
-    const { getPostings, getAPC, getAssignments, profile, user } = useAuth();
+    const { getPostings, getAPC, getAssignments, profile, user, selectedYear, setSelectedYear, availableYears } = useAuth();
     const [postings, setPostings] = useState<PostingData[]>([]);
     const [assignments, setAssignments] = useState<AssignmentData[]>([]);
     const [isLoading, setIsLoading] = useState(true);
@@ -40,8 +40,8 @@ export function Postings() {
         setIsLoading(true);
         try {
             const [postingsData, apcData] = await Promise.all([
-                getPostings(),
-                getAPC()
+                getPostings(selectedYear === 'All' ? undefined : selectedYear),
+                getAPC(selectedYear === 'All' ? undefined : selectedYear)
             ]);
             setPostings(postingsData);
             setApc(apcData);
@@ -61,7 +61,7 @@ export function Postings() {
         } finally {
             setIsLoading(false);
         }
-    }, [getPostings, getAPC, getAssignments, user?.token, profile]);
+    }, [getPostings, getAPC, getAssignments, user?.token, profile, selectedYear]);
 
     useEffect(() => {
         // Only load data when profile is available
@@ -106,10 +106,11 @@ export function Postings() {
     const calculateActiveAssignments = () => {
         if (!apc) return 0;
 
-        // Extract all assignment names from posting history for current year (2026)
+        // Extract all assignment names from posting history for selected or active year
+        const targetYear = selectedYear === 'All' ? (postings[0]?.year || '2026') : selectedYear;
         const postedAssignmentNames = new Set<string>();
         postings.forEach(p => {
-            if (String(p.year) === '2026') {
+            if (String(p.year) === String(targetYear)) {
                 p.assignments?.forEach(a => postedAssignmentNames.add(a.toLowerCase().trim()));
             }
         });
@@ -135,14 +136,36 @@ export function Postings() {
 
     const totalAssignments = calculateActiveAssignments();
 
-    // Calculate total posted_for across all postings
-    // const totalPostedFor = postings.reduce((acc, p) => acc + (p.posted_for || 0), 0);
+    // Filter postings based on selectedYear
+    const displayedPostings = postings.filter(p => selectedYear === 'All' || String(p.year) === String(selectedYear));
 
     return (
         <div className={styles.container}>
             <header className={styles.header}>
-                <h1 className={styles.title}>Posting History</h1>
-                <p className={styles.subtitle}>View all your posting records and assignments</p>
+                <div className={styles.headerContent}>
+                    <div>
+                        <h1 className={styles.title}>Posting History</h1>
+                        <p className={styles.subtitle}>
+                            {selectedYear === 'All'
+                                ? 'View all your posting records and assignments'
+                                : `View your posting records and assignments for ${selectedYear}`}
+                        </p>
+                    </div>
+                    <div className={styles.yearSelectWrapper} title="Select Calendar Year">
+                        <span className={styles.yearSelectLabel}>Year:</span>
+                        <select
+                            value={selectedYear}
+                            onChange={(e) => setSelectedYear(e.target.value)}
+                            className={styles.yearSelect}
+                            aria-label="Filter Calendar Year"
+                        >
+                            <option value="All">All Years</option>
+                            {availableYears.map(y => (
+                                <option key={y} value={y}>{y}</option>
+                            ))}
+                        </select>
+                    </div>
+                </div>
             </header>
 
             {error && (
@@ -158,12 +181,10 @@ export function Postings() {
                         <div className={styles.statsRow}>
                             <div className={styles.statItem}>
                                 <span className={styles.statValue}>{totalAssignments}</span>
-                                <span className={styles.statLabel}>Total Assignments Left</span>
+                                <span className={styles.statLabel}>
+                                    {selectedYear === 'All' ? 'Assignments Left' : `${selectedYear} Assignments Left`}
+                                </span>
                             </div>
-                            {/* <div className={styles.statItem}>
-                                <span className={styles.statValue}>{totalPostedFor}</span>
-                                <span className={styles.statLabel}>Total Assignments Posted</span>
-                            </div> */}
                         </div>
                     </CardContent>
                 </Card>
@@ -171,14 +192,18 @@ export function Postings() {
 
             {/* Postings List */}
             <section className={styles.listSection}>
-                {postings.length === 0 ? (
+                {displayedPostings.length === 0 ? (
                     <Card>
                         <CardContent>
                             <div className={styles.emptyState}>
                                 <span className={styles.emptyIcon}>📍</span>
-                                <h3 className={styles.emptyTitle}>No Postings Found</h3>
+                                <h3 className={styles.emptyTitle}>
+                                    {selectedYear === 'All' ? 'No Postings Found' : `No Postings Found for ${selectedYear}`}
+                                </h3>
                                 <p className={styles.emptyText}>
-                                    You don't have any posting records yet.
+                                    {selectedYear === 'All'
+                                        ? "You don't have any posting records yet."
+                                        : `You don't have any posting records for ${selectedYear}.`}
                                 </p>
                             </div>
                         </CardContent>
@@ -187,7 +212,7 @@ export function Postings() {
                     <div className={styles.postingsList}>
                         {(() => {
                             const grouped = new Map<string, PostingData[]>();
-                            [...postings].sort((a, b) => {
+                            [...displayedPostings].sort((a, b) => {
                                 const yearA = parseInt(String(a.year || '0'));
                                 const yearB = parseInt(String(b.year || '0'));
                                 return yearB - yearA;

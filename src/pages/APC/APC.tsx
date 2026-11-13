@@ -26,7 +26,7 @@ const FALLBACK_ASSIGNMENT_NAMES: Record<string, string> = {
 };
 
 export function APC() {
-    const { getAPC, getPostings, getAssignments, profile, user } = useAuth();
+    const { getAPC, getPostings, getAssignments, profile, user, selectedYear, setSelectedYear, availableYears } = useAuth();
     const [apc, setApc] = useState<APCData | null>(null);
     const [assignments, setAssignments] = useState<AssignmentData[]>([]);
     const [postedAssignmentNames, setPostedAssignmentNames] = useState<Set<string>>(new Set());
@@ -39,10 +39,10 @@ export function APC() {
 
         setIsLoading(true);
         try {
-            // Load APC data and Postings in parallel
+            // Load APC data and Postings in parallel for selectedYear
             const [apcData, postingsData] = await Promise.all([
-                getAPC(),
-                getPostings().catch(err => {
+                getAPC(selectedYear),
+                getPostings(selectedYear).catch(err => {
                     console.error("Failed to load postings for APC filter:", err);
                     return [] as PostingData[];
                 })
@@ -50,11 +50,10 @@ export function APC() {
 
             setApc(apcData);
 
-            // Extract all assignment names from posting history for current year (2026)
+            // Extract all assignment names from posting history for selectedYear
             const postedNames = new Set<string>();
             postingsData.forEach(p => {
-                // p.year might be number or string. Check strictly for 2026.
-                if (String(p.year) === '2026') {
+                if (!selectedYear || String(p.year) === String(selectedYear)) {
                     p.assignments?.forEach(a => postedNames.add(a.toLowerCase().trim()));
                 }
             });
@@ -75,7 +74,7 @@ export function APC() {
         } finally {
             setIsLoading(false);
         }
-    }, [getAPC, getPostings, getAssignments, user?.token, profile]);
+    }, [getAPC, getPostings, getAssignments, user?.token, profile, selectedYear]);
 
     useEffect(() => {
         // Only load data when profile is available
@@ -139,10 +138,27 @@ export function APC() {
     return (
         <div className={styles.container}>
             <header className={styles.header}>
-                <h1 className={styles.title}>APC Assignments</h1>
-                <p className={styles.subtitle}>
-                    Your Annual Posting Calendar for 2026
-                </p>
+                <div className={styles.headerContent}>
+                    <div>
+                        <h1 className={styles.title}>APC Assignments</h1>
+                        <p className={styles.subtitle}>
+                            Your Annual Posting Calendar for {selectedYear}
+                        </p>
+                    </div>
+                    <div className={styles.yearSelectWrapper} title="Select Calendar Year">
+                        <span className={styles.yearSelectLabel}>Year:</span>
+                        <select
+                            value={selectedYear}
+                            onChange={(e) => setSelectedYear(e.target.value)}
+                            className={styles.yearSelect}
+                            aria-label="Filter Calendar Year"
+                        >
+                            {availableYears.map(y => (
+                                <option key={y} value={y}>{y}</option>
+                            ))}
+                        </select>
+                    </div>
+                </div>
             </header>
 
             {error && (
@@ -156,10 +172,10 @@ export function APC() {
                     <CardContent>
                         <div className={styles.emptyState}>
                             <span className={styles.emptyIcon}>📋</span>
-                            <h3 className={styles.emptyTitle}>No APC Data Found</h3>
+                            <h3 className={styles.emptyTitle}>No APC Data Found for {selectedYear}</h3>
                             <p className={styles.emptyText}>
-                                Your Annual Performance Calendar has not been set up yet.
-                                Please contact your administrator.
+                                Your Annual Posting Calendar for {selectedYear} has not been set up yet.
+                                You can choose another year above or contact your administrator.
                             </p>
                         </div>
                     </CardContent>
@@ -180,7 +196,7 @@ export function APC() {
                             <Card variant="elevated">
                                 <CardContent className={styles.summaryCard}>
                                     <span className={styles.summaryIcon}>📅</span>
-                                    <span className={styles.summaryValue}>2026</span>
+                                    <span className={styles.summaryValue}>{apc.year || selectedYear}</span>
                                     <span className={styles.summaryLabel}>Year</span>
                                 </CardContent>
                             </Card>

@@ -85,7 +85,7 @@ export async function updateContact(
 export type StaffType = 'regular' | 'hod' | 'drivers' | 'typesetting';
 
 // Get APC data based on staff type
-export async function getAPC(token: string, staffType: StaffType = 'regular'): Promise<APCData | null> {
+export async function getAPC(token: string, staffType: StaffType = 'regular', year?: string): Promise<APCData | null> {
     try {
         const endpointMap: Record<StaffType, string> = {
             'regular': `${API_BASE}/me/apc`,
@@ -93,7 +93,10 @@ export async function getAPC(token: string, staffType: StaffType = 'regular'): P
             'drivers': `${API_BASE}/me/drivers-apc`,
             'typesetting': `${API_BASE}/me/typesetting-apc`,
         };
-        const endpoint = endpointMap[staffType];
+        let endpoint = endpointMap[staffType];
+        if (year && year !== 'All') {
+            endpoint += `?year=${encodeURIComponent(year)}`;
+        }
         return await request<APCData>(endpoint, {}, token);
     } catch (error) {
         // Return null if no APC data exists
@@ -105,14 +108,17 @@ export async function getAPC(token: string, staffType: StaffType = 'regular'): P
 }
 
 // Get posting history based on staff type
-export async function getPostings(token: string, staffType: StaffType = 'regular'): Promise<PostingListResponse> {
+export async function getPostings(token: string, staffType: StaffType = 'regular', year?: string): Promise<PostingListResponse> {
     const endpointMap: Record<StaffType, string> = {
         'regular': `${API_BASE}/me/posting`,
         'hod': `${API_BASE}/me/hod-posting`,
         'drivers': `${API_BASE}/me/drivers-posting`,
         'typesetting': `${API_BASE}/me/typesetting-posting`,
     };
-    const endpoint = endpointMap[staffType];
+    let endpoint = endpointMap[staffType];
+    if (year && year !== 'All') {
+        endpoint += `?year=${encodeURIComponent(year)}`;
+    }
     return request<PostingListResponse>(endpoint, {}, token);
 }
 

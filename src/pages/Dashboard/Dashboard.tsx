@@ -36,7 +36,7 @@ const getWelcomeName = (fullName: string | undefined) => {
 };
 
 export function Dashboard() {
-    const { profile, getPostings, getAPC, getAssignments } = useAuth();
+    const { profile, getPostings, getAPC, getAssignments, selectedYear, setSelectedYear, availableYears } = useAuth();
     const [stats, setStats] = useState({
         postingsCount: 0,
         activeAssignments: 0,
@@ -46,19 +46,23 @@ export function Dashboard() {
     useEffect(() => {
         const loadStats = async () => {
             if (!profile) return;
+            setStats(prev => ({ ...prev, loading: true }));
             try {
                 const [postings, apc, assignments] = await Promise.all([
-                    getPostings().catch(() => []),
-                    getAPC().catch(() => null),
+                    getPostings(selectedYear).catch(() => []),
+                    getAPC(selectedYear).catch(() => null),
                     getAssignments().catch(() => []),
                 ]);
 
-                // 1. Calculate Total Postings (Assignments)
-                const totalPostings = postings.reduce((acc: any, p: any) => acc + (p.assignments?.length || 0), 0);
+                // Filter postings for selected year
+                const yearPostings = postings.filter(p => !selectedYear || selectedYear === 'All' || String(p.year) === String(selectedYear));
+
+                // 1. Calculate Total Postings (Assignments) for selected year
+                const totalPostings = yearPostings.reduce((acc: any, p: any) => acc + (p.assignments?.length || 0), 0);
 
                 // 2. Build Posted Names Set
                 const postedNames = new Set<string>();
-                postings.forEach(p => {
+                yearPostings.forEach(p => {
                     p.assignments?.forEach(a => postedNames.add(a.toLowerCase().trim()));
                 });
 
@@ -101,7 +105,7 @@ export function Dashboard() {
         };
 
         loadStats();
-    }, [getPostings, getAPC, getAssignments]);
+    }, [getPostings, getAPC, getAssignments, profile, selectedYear]);
 
     if (!profile) {
         return <Loader fullScreen text="Loading your dashboard..." />;
@@ -135,13 +139,28 @@ export function Dashboard() {
         <div className={styles.container}>
             {/* Welcome Section */}
             <section className={styles.welcomeSection}>
-                <div className={styles.welcomeContent}>
-                    <h1 className={styles.welcomeTitle}>
-                        Welcome, <span className={styles.name}>{getWelcomeName(profile.full_name)}</span>! 👋
-                    </h1>
-                    <p className={styles.welcomeSubtitle}>
-                        Here's an overview of your NECO staff profile
-                    </p>
+                <div className={styles.welcomeRow}>
+                    <div className={styles.welcomeContent}>
+                        <h1 className={styles.welcomeTitle}>
+                            Welcome, <span className={styles.name}>{getWelcomeName(profile.full_name)}</span>! 👋
+                        </h1>
+                        <p className={styles.welcomeSubtitle}>
+                            Overview of your NECO staff profile for calendar year {selectedYear}
+                        </p>
+                    </div>
+                    <div className={styles.yearSelectWrapper} title="Select Calendar Year">
+                        <span className={styles.yearSelectLabel}>Year:</span>
+                        <select
+                            value={selectedYear}
+                            onChange={(e) => setSelectedYear(e.target.value)}
+                            className={styles.yearSelect}
+                            aria-label="Filter Calendar Year"
+                        >
+                            {availableYears.map(y => (
+                                <option key={y} value={y}>{y}</option>
+                            ))}
+                        </select>
+                    </div>
                 </div>
             </section>
 
@@ -154,7 +173,7 @@ export function Dashboard() {
                             <span className={styles.statValue}>
                                 {stats.loading ? '...' : stats.postingsCount}
                             </span>
-                            <span className={styles.statLabel}>Total Postings</span>
+                            <span className={styles.statLabel}>Postings ({selectedYear})</span>
                         </div>
                     </CardContent>
                 </Card>
@@ -166,7 +185,7 @@ export function Dashboard() {
                             <span className={styles.statValue}>
                                 {stats.loading ? '...' : stats.activeAssignments}
                             </span>
-                            <span className={styles.statLabel}>Active Assignments</span>
+                            <span className={styles.statLabel}>Assignments Left ({selectedYear})</span>
                         </div>
                     </CardContent>
                 </Card>
