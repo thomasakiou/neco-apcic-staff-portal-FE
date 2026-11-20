@@ -106,6 +106,14 @@ export function APC() {
         return apc[key as keyof APCData] as string | null;
     };
 
+    const formatAssignmentTitle = (name: string, value: string | null | undefined): string => {
+        if (!value) return name;
+        const trimmed = String(value).trim();
+        if (!trimmed || ['1', '0', 'true', 'false', 'returned'].includes(trimmed.toLowerCase())) return name;
+        if (name.toLowerCase().includes(`(${trimmed.toLowerCase()})`)) return name;
+        return `${name} (${trimmed})`;
+    };
+
     // Get active (or posted) assignments with their resolved names
     const activeAssignments = APC_FIELD_KEYS
         .map((key) => {
@@ -216,7 +224,7 @@ export function APC() {
                                         <CardContent>
                                             <div className={styles.assignmentHeader}>
                                                 <span className={styles.assignmentIcon}>✅</span>
-                                                <h3 className={styles.assignmentTitle}>{assignment.name}</h3>
+                                                <h3 className={styles.assignmentTitle}>{formatAssignmentTitle(assignment.name, assignment.value)}</h3>
                                                 {assignment.isPosted && (
                                                     <span className={styles.postedBadge}>Posted</span>
                                                 )}
