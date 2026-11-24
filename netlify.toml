@@ -13,6 +13,12 @@
   status = 200
   force = true
 
+[[redirects]]
+  from = "/uploads/*"
+  to = "https://vmi2848672.contaboserver.net/apcic/uploads/:splat"
+  status = 200
+  force = true
+
 # Handle Single Page Application (SPA) routing
 # Must be after specific api redirects
 [[redirects]]
